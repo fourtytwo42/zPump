@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use solana_program::pubkey::Pubkey;
+use anchor_lang::solana_program::pubkey::Pubkey;
 
 pub struct PoolAddresses {
     pub pool_state: Pubkey,

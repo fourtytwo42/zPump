@@ -3,8 +3,8 @@ use crate::{TransferArgs, ExecuteTransfer as ExecuteTransferContext};
 use crate::state::{PoolState, CommitmentTree};
 use crate::errors::PoolError;
 use ptf_common::{InputSanitizer, check_rate_limit, OperationType};
-use solana_program::sysvar::Sysvar;
-use solana_program::clock::Clock;
+use anchor_lang::solana_program::sysvar::Sysvar;
+use anchor_lang::solana_program::clock::Clock;
 
 pub fn execute_transfer(
     ctx: Context<ExecuteTransferContext>,

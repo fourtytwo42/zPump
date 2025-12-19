@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use solana_program::sysvar::Sysvar;
+use anchor_lang::solana_program::sysvar::Sysvar;
 use crate::state::VerifyingKeyAccount;
 use crate::errors::VerifierError;
 

@@ -15,9 +15,8 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
-anchor-lang = "0.30.1"
-anchor-spl = "0.30.1"
-solana-program = "~1.18.0"
+anchor-lang = "0.32.1"
+anchor-spl = "0.32.1"
 ptf_common = { path = "../common" }
 ptf_pool = { path = "../ptf_pool" }
 

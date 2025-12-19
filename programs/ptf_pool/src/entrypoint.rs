@@ -1,4 +1,4 @@
-use solana_program::{
+use anchor_lang::solana_program::{
     account_info::AccountInfo,
     entrypoint::ProgramResult,
     pubkey::Pubkey,

@@ -2,8 +2,8 @@ use anchor_lang::prelude::*;
 use crate::state::{PoolState, CommitmentTree, NoteLedger};
 use crate::errors::PoolError;
 use ptf_common::{InputValidator, InputSanitizer, check_rate_limit, OperationType};
-use solana_program::sysvar::Sysvar;
-use solana_program::clock::Clock;
+use anchor_lang::solana_program::sysvar::Sysvar;
+use anchor_lang::solana_program::clock::Clock;
 
 #[inline(never)]
 pub fn execute_shield_core(

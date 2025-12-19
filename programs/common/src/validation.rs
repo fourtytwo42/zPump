@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
-use solana_program::account_info::AccountInfo;
-use solana_program::pubkey::Pubkey;
+use anchor_lang::solana_program::account_info::AccountInfo;
+use anchor_lang::solana_program::pubkey::Pubkey;
 use crate::errors::CommonError;
 use crate::types::{MIN_AMOUNT, MAX_AMOUNT, MAX_PROOF_SIZE, MIN_PROOF_SIZE, MAX_PUBLIC_INPUTS_SIZE};
 

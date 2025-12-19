@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
-use solana_program::account_info::AccountInfo;
-use solana_program::entrypoint::ProgramResult;
-use solana_program::pubkey::Pubkey;
+use anchor_lang::solana_program::account_info::AccountInfo;
+use anchor_lang::solana_program::entrypoint::ProgramResult;
+use anchor_lang::solana_program::pubkey::Pubkey;
 
 pub mod errors;
 pub mod instructions;

@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use solana_program::{
+use anchor_lang::solana_program::{
     account_info::AccountInfo,
     entrypoint::ProgramResult,
     program_error::ProgramError,

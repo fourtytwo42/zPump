@@ -3,10 +3,10 @@ use crate::{PrepareUnshieldArgs, PrepareUnshield as PrepareUnshieldContext};
 use crate::state::UserProofVault;
 use crate::errors::PoolError;
 use ptf_common::OperationStatus;
-use solana_program::rent::Rent;
-use solana_program::system_instruction;
-use solana_program::program::invoke_signed;
-use solana_program::pubkey::Pubkey;
+use anchor_lang::solana_program::rent::Rent;
+use anchor_lang::solana_program::system_instruction;
+use anchor_lang::solana_program::program::invoke_signed;
+use anchor_lang::solana_program::pubkey::Pubkey;
 
 pub fn prepare_unshield(
     ctx: Context<PrepareUnshieldContext>,
