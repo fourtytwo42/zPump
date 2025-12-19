@@ -1,0 +1,24 @@
+{
+  "name": "zpump",
+  "version": "0.1.0",
+  "description": "zPump privacy pool smart contracts",
+  "scripts": {
+    "build": "anchor build --ignore-keys",
+    "test": "anchor test",
+    "lint": "cargo clippy",
+    "format": "cargo fmt",
+    "copy-idls": "./scripts/copy-idls.sh",
+    "reset-env": "./scripts/reset-dev-env.sh",
+    "start-validator": "./scripts/start-private-devnet-with-upgrade.sh",
+    "bootstrap": "cd scripts && npx tsx bootstrap-private-devnet.ts",
+    "bootstrap-wsol": "cd scripts && npx tsx bootstrap-wsol.ts"
+  },
+  "devDependencies": {
+    "@coral-xyz/anchor": "^0.30.1",
+    "@solana/web3.js": "^1.87.6",
+    "@solana/spl-token": "^0.3.9",
+    "typescript": "^5.3.3",
+    "tsx": "^4.7.0"
+  }
+}
+

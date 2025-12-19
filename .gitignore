@@ -76,3 +76,13 @@ ecosystem.config.js
 # Optional stylelint cache
 .stylelintcache
 
+# Rust/Anchor
+target/
+**/*.rs.bk
+Cargo.lock
+.anchor/
+test-ledger/
+*.so
+*.so.d
+.DS_Store
+

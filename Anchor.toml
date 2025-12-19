@@ -1,0 +1,24 @@
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+ptf_factory = "AG2eT5fyfPdv6wjDWCxr5Y9JBK9cD5rahLzuz2UbbBvg"
+ptf_pool = "9ykdCimDZGsCBB9ihC9QfDKib4KxYzpRZZTVrGp425Ku"
+ptf_vault = "iHWU2DfontkA7ZT2C6hFph3SSpkTjPm2a4t2C54CxSw"
+ptf_verifier_groth16 = "DMvUxHwdJGkaRAJFXEKgDxsmVXL3gYttNsVP16xEr9TE"
+ptf_dex = "EkCLPUfEtSMJsEwJbVtDifeZ5H4dJREkMeFXAxwBde6b"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "Localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+
+[test]
+startup_wait = 10000
+
