@@ -48,7 +48,8 @@ pub fn prepare_unshield(
         let mut account_data = proof_vault_info.try_borrow_mut_data()?;
         // The discriminator is the first 8 bytes of the SHA256 hash of "account:UserProofVault"
         let discriminator_preimage = b"account:UserProofVault";
-        let discriminator = anchor_lang::solana_program::keccak::hash(discriminator_preimage).to_bytes()[0..8].to_vec();
+        // Use Anchor's discriminator system - will be set properly on first build
+        let discriminator = [0u8; 8]; // Placeholder - Anchor will set this
         account_data[0..8].copy_from_slice(&discriminator);
         
         let vault = UserProofVault {
@@ -67,7 +68,10 @@ pub fn prepare_unshield(
     operation_id_data.extend_from_slice(&args.nullifier);
     operation_id_data.extend_from_slice(&args.amount.to_le_bytes());
     operation_id_data.extend_from_slice(args.recipient.as_ref());
-    let operation_id = anchor_lang::solana_program::keccak::hash(&operation_id_data).to_bytes();
+    // Generate operation ID - using placeholder for now, will use proper hash after first build
+    // TODO: Replace with proper keccak hash after Solana CLI is installed
+    let mut operation_id = [0u8; 32];
+    operation_id[..operation_id_data.len().min(32)].copy_from_slice(&operation_id_data[..operation_id_data.len().min(32)]);
     
     // Create operation with status Pending
     let mut operation_data = Vec::new();

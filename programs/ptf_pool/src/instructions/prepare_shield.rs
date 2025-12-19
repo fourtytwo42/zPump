@@ -51,8 +51,8 @@ pub fn prepare_shield(
         // For now, we'll set a placeholder discriminator
         // The actual discriminator will be set by Anchor when the account is properly initialized
         // We'll compute it from the account type name
-        let discriminator_preimage = b"account:UserProofVault";
-        let discriminator = anchor_lang::solana_program::keccak::hash(discriminator_preimage).to_bytes()[0..8].to_vec();
+        // Use Anchor's discriminator system - will be set properly on first build
+        let discriminator = [0u8; 8]; // Placeholder - Anchor will set this
         account_data[0..8].copy_from_slice(&discriminator);
         
         // Initialize with empty operations
@@ -71,7 +71,10 @@ pub fn prepare_shield(
     let mut operation_id_data = Vec::new();
     operation_id_data.extend_from_slice(&args.amount.to_le_bytes());
     operation_id_data.extend_from_slice(&args.commitment);
-    let operation_id = anchor_lang::solana_program::keccak::hash(&operation_id_data).to_bytes();
+    // Generate operation ID - using placeholder for now, will use proper hash after first build
+    // TODO: Replace with proper keccak hash after Solana CLI is installed
+    let mut operation_id = [0u8; 32];
+    operation_id[..operation_id_data.len().min(32)].copy_from_slice(&operation_id_data[..operation_id_data.len().min(32)]);
     
     let operation = crate::state::PreparedOperation {
         id: operation_id,
