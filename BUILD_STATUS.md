@@ -9,15 +9,12 @@
 - Anchor workspace configured
 - Anchor CLI installed (v0.32.1)
 
-### ⚠️ Blocker: Solana CLI Installation
+### ✅ Solana CLI Installation - COMPLETED
 
-**Issue:** TLS/SSL connection errors prevent downloading Solana CLI via curl/wget:
-```
-curl: (35) TLS connect error: error:0A000126:SSL routines::unexpected eof while reading
-wget: GnuTLS: The TLS connection was non-properly terminated
-```
-
-**Impact:** Cannot run `anchor build` because it requires `build-sbf` command from Solana CLI.
+**Solution:** Used alternative URL `release.anza.xyz` instead of `release.solana.com`
+- ✅ Solana CLI 3.0.13 successfully installed
+- ✅ All programs compile successfully
+- ✅ .so files generated in `target/deploy/`
 
 **Solutions to Try:**
 1. **Manual Installation:** Download Solana CLI binary manually from GitHub releases
@@ -58,24 +55,52 @@ export PATH="$PWD/solana-release/bin:$PATH"
 - Test all edge cases
 - Achieve 99% test coverage
 
-## Next Steps (After Solana CLI is Installed)
+## Current Status
 
-1. **Build Programs:**
+### ✅ Completed
+- ✅ Solana CLI 3.0.13 installed
+- ✅ Anchor CLI 0.32.1 installed
+- ✅ All programs compile successfully
+- ✅ .so files generated in `target/deploy/`
+- ⚠️ Stack overflow warnings in `ptf_pool` (expected, needs optimization)
+- ⚠️ IDL generation error (may need manual IDL generation)
+
+### ⚠️ Known Issues
+
+1. **Stack Overflow in ptf_pool:**
+   - `CommitmentTree` deserialization uses too much stack
+   - `ExecuteUnshieldUpdate` uses too much stack
+   - These are expected and documented in the architecture
+   - Will be addressed with stack optimizations and raw instruction patterns
+
+2. **IDL Generation Error:**
+   - Build completes but fails at IDL copy step
+   - Programs compile and .so files are generated
+   - May need to generate IDLs manually or fix stack issues first
+
+## Next Steps
+
+1. **Fix Stack Overflow Issues:**
+   - Optimize `CommitmentTree` deserialization
+   - Use raw instruction pattern for `ExecuteUnshieldUpdate`
+   - Minimize stack variables
+
+2. **Generate IDLs:**
    ```bash
-   anchor build
+   anchor idl build
    ```
 
-2. **Start Validator:**
+3. **Start Validator:**
    ```bash
    npm run start-validator
    ```
 
-3. **Bootstrap Environment:**
+4. **Bootstrap Environment:**
    ```bash
    npm run bootstrap
    ```
 
-4. **Run Tests:**
+5. **Run Tests:**
    ```bash
    cd tests && npm install && npm test
    ```
