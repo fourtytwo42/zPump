@@ -15,9 +15,10 @@ export function getFactoryProgram(
   connection: Connection,
   payer: Keypair,
 ): Program {
+  const wallet = new Wallet(payer);
   const provider = new AnchorProvider(
     connection,
-    new Wallet(payer),
+    wallet,
     { commitment: "confirmed" },
   );
   return new Program(
@@ -31,9 +32,10 @@ export function getVaultProgram(
   connection: Connection,
   payer: Keypair,
 ): Program {
+  const wallet = new Wallet(payer);
   const provider = new AnchorProvider(
     connection,
-    new Wallet(payer),
+    wallet,
     { commitment: "confirmed" },
   );
   return new Program(
@@ -47,9 +49,10 @@ export function getVerifierProgram(
   connection: Connection,
   payer: Keypair,
 ): Program {
+  const wallet = new Wallet(payer);
   const provider = new AnchorProvider(
     connection,
-    new Wallet(payer),
+    wallet,
     { commitment: "confirmed" },
   );
   return new Program(
@@ -63,9 +66,10 @@ export function getPoolProgram(
   connection: Connection,
   payer: Keypair,
 ): Program {
+  const wallet = new Wallet(payer);
   const provider = new AnchorProvider(
     connection,
-    new Wallet(payer),
+    wallet,
     { commitment: "confirmed" },
   );
   return new Program(
