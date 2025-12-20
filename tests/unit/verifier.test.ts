@@ -41,7 +41,7 @@ describe("ptf_verifier_groth16 Unit Tests", () => {
   });
   
   it("should initialize verifying key", async () => {
-    const keyData = new Uint8Array(100);
+    const keyData = Buffer.alloc(100);
     keyData.fill(42); // Test key data
     
     try {
