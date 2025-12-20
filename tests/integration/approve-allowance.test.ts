@@ -102,7 +102,7 @@ describe("Allowance Operations", () => {
       
       recordInstructionCoverage("ptf_pool", "approve_allowance");
       const computeUnits = await getComputeUnitsUsed(connection, tx);
-      recordGasUsage("ptf_pool", "approve_allowance", computeUnits);
+      await recordGasUsage(connection, "ptf_pool", "approve_allowance", computeUnits);
       
       expect(tx).to.be.a("string");
     } catch (e: any) {
