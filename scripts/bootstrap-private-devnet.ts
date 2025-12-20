@@ -63,8 +63,18 @@ export async function bootstrapPrivateDevnet(
     
     console.log("Factory initialized:", factoryState.toString());
   } catch (e: any) {
-    if (e.message?.includes("already in use")) {
-      console.log("Factory already initialized");
+    if (e.message?.includes("already in use") || 
+        e.message?.includes("already initialized") ||
+        e.message?.includes("ConstraintSeeds") ||
+        e.error?.errorCode?.code === "ConstraintSeeds") {
+      console.log("Factory already initialized (or initialized with different program ID)");
+      // Try to fetch existing factory to verify it exists
+      try {
+        await factoryProgram.account.factoryState.fetch(factoryState);
+        console.log("Factory state exists and is accessible");
+      } catch (fetchError) {
+        console.log("Warning: Factory PDA exists but state may not be accessible - skipping initialization");
+      }
     } else {
       throw e;
     }
