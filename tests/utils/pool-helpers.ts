@@ -251,7 +251,7 @@ export async function getPoolState(
   poolState: PublicKey,
 ): Promise<any | null> {
   try {
-    return await program.account.poolState.fetch(poolState);
+    return await (program.account as any).poolState.fetch(poolState);
   } catch (e) {
     return null;
   }
@@ -265,7 +265,7 @@ export async function getCommitmentTree(
   commitmentTree: PublicKey,
 ): Promise<any | null> {
   try {
-    return await program.account.commitmentTree.fetch(commitmentTree);
+    return await (program.account as any).commitmentTree.fetch(commitmentTree);
   } catch (e) {
     return null;
   }
@@ -279,7 +279,7 @@ export async function getNullifierSet(
   nullifierSet: PublicKey,
 ): Promise<any | null> {
   try {
-    return await program.account.nullifierSet.fetch(nullifierSet);
+    return await (program.account as any).nullifierSet.fetch(nullifierSet);
   } catch (e) {
     return null;
   }
