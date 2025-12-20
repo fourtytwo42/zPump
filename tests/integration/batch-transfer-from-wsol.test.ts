@@ -16,6 +16,7 @@ import {
   getPoolProgram,
   getFactoryProgram,
   getVerifierProgram,
+  POOL_PROGRAM_ID,
   FACTORY_PROGRAM_ID,
   VERIFIER_PROGRAM_ID,
 } from "../utils/programs";
@@ -28,6 +29,7 @@ import {
 import {
   derivePoolAddresses,
   generateTransferOperation,
+  deriveAllowance,
 } from "../utils/pool-helpers";
 
 const WSOL_MINT = NATIVE_MINT;
@@ -40,6 +42,7 @@ describe("Batch TransferFrom Operations - wSOL Tests", () => {
   let factoryProgram: any;
   let poolAddresses: any;
   let verifyingKey: PublicKey;
+  let allowancePDA: PublicKey;
   
   before(async () => {
     connection = getConnection();
@@ -84,6 +87,13 @@ describe("Batch TransferFrom Operations - wSOL Tests", () => {
     } catch (e: any) {
       // May already be initialized
     }
+    
+    // Derive allowance PDA (owner, spender, poolState)
+    [allowancePDA] = deriveAllowance(
+      owner.publicKey,
+      spender.publicKey,
+      poolAddresses.poolState,
+    );
   });
   
   it("should execute batch transferFrom with wSOL", async () => {
@@ -104,12 +114,16 @@ describe("Batch TransferFrom Operations - wSOL Tests", () => {
           transfers,
         })
         .accounts({
-          poolState: poolAddresses.poolState,
-          commitmentTree: poolAddresses.commitmentTree,
-          nullifierSet: poolAddresses.nullifierSet,
-          verifyingKey: verifyingKey,
-          verifierProgram: VERIFIER_PROGRAM_ID,
+          _phantom: owner.publicKey, // Phantom account for raw instruction
         })
+        .remainingAccounts([
+          { pubkey: poolAddresses.poolState, isSigner: false, isWritable: true },
+          { pubkey: poolAddresses.commitmentTree, isSigner: false, isWritable: true },
+          { pubkey: poolAddresses.nullifierSet, isSigner: false, isWritable: true },
+          { pubkey: allowancePDA, isSigner: false, isWritable: true },
+          { pubkey: verifyingKey, isSigner: false, isWritable: false },
+          { pubkey: VERIFIER_PROGRAM_ID, isSigner: false, isWritable: false },
+        ])
         .rpc();
       
       recordInstructionCoverage("ptf_pool", "execute_batch_transfer_from");

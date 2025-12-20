@@ -27,7 +27,9 @@ export function generateMockProof(
   const proof = new Uint8Array(192);
   
   // Fill proof with deterministic but realistic-looking data
-  for (let i = 0; i < 192; i++) {
+  // Ensure we don't exceed buffer bounds
+  const maxProofIndex = Math.min(192, proof.length);
+  for (let i = 0; i < maxProofIndex; i++) {
     proof[i] = (seed[i % 32] + i) % 256;
   }
   

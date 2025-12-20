@@ -101,12 +101,15 @@ describe("Batch Transfer Operations - wSOL Tests", () => {
           transfers,
         })
         .accounts({
-          poolState: poolAddresses.poolState,
-          commitmentTree: poolAddresses.commitmentTree,
-          nullifierSet: poolAddresses.nullifierSet,
-          verifyingKey: verifyingKey,
-          verifierProgram: VERIFIER_PROGRAM_ID,
+          _phantom: user.publicKey, // Phantom account for raw instruction
         })
+        .remainingAccounts([
+          { pubkey: poolAddresses.poolState, isSigner: false, isWritable: true },
+          { pubkey: poolAddresses.commitmentTree, isSigner: false, isWritable: true },
+          { pubkey: poolAddresses.nullifierSet, isSigner: false, isWritable: true },
+          { pubkey: verifyingKey, isSigner: false, isWritable: false },
+          { pubkey: VERIFIER_PROGRAM_ID, isSigner: false, isWritable: false },
+        ])
         .rpc();
       
       recordInstructionCoverage("ptf_pool", "execute_batch_transfer");

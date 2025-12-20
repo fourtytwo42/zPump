@@ -109,7 +109,7 @@ describe("ptf_factory Unit Tests", () => {
       
       // Verify mint mapping exists
       const mapping = await factoryProgram.account.mintMapping.fetch(mintMapping);
-      expect(mapping.mint.toString()).to.equal(mint.toString());
+      expect(mapping.originMint.toString()).to.equal(mint.toString());
     } catch (e: any) {
       if (e.message?.includes("already in use") || e.message?.includes("already registered")) {
         recordInstructionCoverage("ptf_factory", "register_mint");

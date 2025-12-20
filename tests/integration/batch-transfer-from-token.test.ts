@@ -28,6 +28,7 @@ import {
 import {
   derivePoolAddresses,
   generateTransferOperation,
+  deriveAllowance,
 } from "../utils/pool-helpers";
 
 describe("Batch TransferFrom Operations - Token Tests", () => {
@@ -39,6 +40,7 @@ describe("Batch TransferFrom Operations - Token Tests", () => {
   let testMint: PublicKey;
   let poolAddresses: any;
   let verifyingKey: PublicKey;
+  let allowancePDA: PublicKey;
   
   before(async () => {
     connection = getConnection();
@@ -92,6 +94,13 @@ describe("Batch TransferFrom Operations - Token Tests", () => {
     } catch (e: any) {
       // May already be initialized
     }
+    
+    // Derive allowance PDA (owner, spender, poolState)
+    [allowancePDA] = deriveAllowance(
+      owner.publicKey,
+      spender.publicKey,
+      poolAddresses.poolState,
+    );
   });
   
   it("should execute batch transferFrom with token", async () => {
@@ -112,12 +121,16 @@ describe("Batch TransferFrom Operations - Token Tests", () => {
           transfers,
         })
         .accounts({
-          poolState: poolAddresses.poolState,
-          commitmentTree: poolAddresses.commitmentTree,
-          nullifierSet: poolAddresses.nullifierSet,
-          verifyingKey: verifyingKey,
-          verifierProgram: VERIFIER_PROGRAM_ID,
+          _phantom: owner.publicKey, // Phantom account for raw instruction
         })
+        .remainingAccounts([
+          { pubkey: poolAddresses.poolState, isSigner: false, isWritable: true },
+          { pubkey: poolAddresses.commitmentTree, isSigner: false, isWritable: true },
+          { pubkey: poolAddresses.nullifierSet, isSigner: false, isWritable: true },
+          { pubkey: allowancePDA, isSigner: false, isWritable: true },
+          { pubkey: verifyingKey, isSigner: false, isWritable: false },
+          { pubkey: VERIFIER_PROGRAM_ID, isSigner: false, isWritable: false },
+        ])
         .rpc();
       
       recordInstructionCoverage("ptf_pool", "execute_batch_transfer_from");
