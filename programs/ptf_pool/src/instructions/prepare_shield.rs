@@ -7,6 +7,17 @@ use anchor_lang::solana_program::rent::Rent;
 use anchor_lang::solana_program::system_instruction;
 use anchor_lang::solana_program::program::invoke_signed;
 use anchor_lang::solana_program::pubkey::Pubkey;
+// Hash function for operation IDs - using simple approach for now
+// In production, would use proper keccak hash
+fn hash_operation_id(data: &[u8]) -> [u8; 32] {
+    // For now, use a simple hash - will replace with proper keccak after Solana CLI setup
+    let mut result = [0u8; 32];
+    for (i, byte) in data.iter().enumerate() {
+        result[i % 32] ^= byte.wrapping_add(i as u8);
+    }
+    // Simple hash - in production use keccak::hash
+    result
+}
 
 pub fn prepare_shield(
     ctx: Context<PrepareShieldContext>,
@@ -71,10 +82,8 @@ pub fn prepare_shield(
     let mut operation_id_data = Vec::new();
     operation_id_data.extend_from_slice(&args.amount.to_le_bytes());
     operation_id_data.extend_from_slice(&args.commitment);
-    // Generate operation ID - using placeholder for now, will use proper hash after first build
-    // TODO: Replace with proper keccak hash after Solana CLI is installed
-    let mut operation_id = [0u8; 32];
-    operation_id[..operation_id_data.len().min(32)].copy_from_slice(&operation_id_data[..operation_id_data.len().min(32)]);
+    // Generate operation ID using hash
+    let operation_id = hash_operation_id(&operation_id_data);
     
     let operation = crate::state::PreparedOperation {
         id: operation_id,
