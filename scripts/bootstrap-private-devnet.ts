@@ -42,9 +42,8 @@ export async function bootstrapPrivateDevnet(
   
   const factoryProgram = new Program(
     ptfFactory as any,
-    FACTORY_PROGRAM_ID,
     provider,
-  );
+  ) as any;
   
   // Initialize factory
   const [factoryState] = PublicKey.findProgramAddressSync(
