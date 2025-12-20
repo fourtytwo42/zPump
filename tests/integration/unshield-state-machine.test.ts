@@ -25,7 +25,8 @@ import {
   deriveProofVault,
   generateUnshieldOperation,
 } from "../utils/pool-helpers";
-import { createMint, getATAAddress, createATAIfNeeded } from "@solana/spl-token";
+import { createMint } from "@solana/spl-token";
+import { getATAAddress, createATAIfNeeded } from "../utils/accounts";
 
 describe("Unshield Operations - State Machine Tests", () => {
   let connection: Connection;
