@@ -147,7 +147,7 @@ describe("Unshield Operations - Token Tests", () => {
       
       recordInstructionCoverage("ptf_pool", "prepare_unshield");
       const prepareComputeUnits = await getComputeUnitsUsed(connection, prepareTx);
-      recordGasUsage("ptf_pool", "prepare_unshield", prepareComputeUnits);
+      await recordGasUsage(connection, "ptf_pool", "prepare_unshield", prepareComputeUnits);
       
       // Step 2: Execute unshield verify
       const verifyTx = await poolProgram.methods
@@ -161,7 +161,7 @@ describe("Unshield Operations - Token Tests", () => {
       
       recordInstructionCoverage("ptf_pool", "execute_unshield_verify");
       const verifyComputeUnits = await getComputeUnitsUsed(connection, verifyTx);
-      recordGasUsage("ptf_pool", "execute_unshield_verify", verifyComputeUnits);
+      await recordGasUsage(connection, "ptf_pool", "execute_unshield_verify", verifyComputeUnits);
       
       // Step 3: Execute unshield update
       const updateTx = await poolProgram.methods
@@ -176,7 +176,7 @@ describe("Unshield Operations - Token Tests", () => {
       
       recordInstructionCoverage("ptf_pool", "execute_unshield_update");
       const updateComputeUnits = await getComputeUnitsUsed(connection, updateTx);
-      recordGasUsage("ptf_pool", "execute_unshield_update", updateComputeUnits);
+      await recordGasUsage(connection, "ptf_pool", "execute_unshield_update", updateComputeUnits);
       
       // Step 4: Execute unshield withdraw
       const withdrawTx = await poolProgram.methods
@@ -194,7 +194,7 @@ describe("Unshield Operations - Token Tests", () => {
       
       recordInstructionCoverage("ptf_pool", "execute_unshield_withdraw");
       const withdrawComputeUnits = await getComputeUnitsUsed(connection, withdrawTx);
-      recordGasUsage("ptf_pool", "execute_unshield_withdraw", withdrawComputeUnits);
+      await recordGasUsage(connection, "ptf_pool", "execute_unshield_withdraw", withdrawComputeUnits);
       
       expect(prepareTx).to.be.a("string");
       expect(verifyTx).to.be.a("string");

@@ -138,7 +138,7 @@ describe("Shield Operations - Token Tests", () => {
       
       recordInstructionCoverage("ptf_pool", "prepare_shield");
       const computeUnits = await getComputeUnitsUsed(connection, tx);
-      recordGasUsage("ptf_pool", "prepare_shield", computeUnits);
+      await recordGasUsage(connection, "ptf_pool", "prepare_shield", computeUnits);
       
       // Verify proof vault exists and has operation
       const proofVaultInfo = await connection.getAccountInfo(proofVault);
@@ -183,7 +183,7 @@ describe("Shield Operations - Token Tests", () => {
       
       recordInstructionCoverage("ptf_pool", "execute_shield_v2");
       const computeUnits = await getComputeUnitsUsed(connection, tx);
-      recordGasUsage("ptf_pool", "execute_shield_v2", computeUnits);
+      await recordGasUsage(connection, "ptf_pool", "execute_shield_v2", computeUnits);
       
       expect(tx).to.be.a("string");
     } catch (e: any) {

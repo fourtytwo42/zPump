@@ -37,7 +37,7 @@ describe("ptf_factory Unit Tests", () => {
       
       recordInstructionCoverage("ptf_factory", "initialize_factory");
       const computeUnits = await getComputeUnitsUsed(connection, tx);
-      recordGasUsage("ptf_factory", "initialize_factory", computeUnits);
+      await recordGasUsage(connection, "ptf_factory", "initialize_factory", computeUnits);
       
       // Verify factory state exists
       const factoryAccount = await factoryProgram.account.factoryState.fetch(factoryState);
@@ -105,7 +105,7 @@ describe("ptf_factory Unit Tests", () => {
       
       recordInstructionCoverage("ptf_factory", "register_mint");
       const computeUnits = await getComputeUnitsUsed(connection, tx);
-      recordGasUsage("ptf_factory", "register_mint", computeUnits);
+      await recordGasUsage(connection, "ptf_factory", "register_mint", computeUnits);
       
       // Verify mint mapping exists
       const mapping = await factoryProgram.account.mintMapping.fetch(mintMapping);
@@ -153,7 +153,7 @@ describe("ptf_factory Unit Tests", () => {
       
       recordInstructionCoverage("ptf_factory", "create_verifying_key");
       const computeUnits = await getComputeUnitsUsed(connection, tx);
-      recordGasUsage("ptf_factory", "create_verifying_key", computeUnits);
+      await recordGasUsage(connection, "ptf_factory", "create_verifying_key", computeUnits);
       
       expect(tx).to.be.a("string");
     } catch (e: any) {

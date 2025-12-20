@@ -123,7 +123,7 @@ describe("ptf_vault Unit Tests", () => {
       
       recordInstructionCoverage("ptf_vault", "deposit");
       const computeUnits = await getComputeUnitsUsed(connection, tx);
-      recordGasUsage("ptf_vault", "deposit", computeUnits);
+      await recordGasUsage(connection, "ptf_vault", "deposit", computeUnits);
       
       // Verify balances
       const finalUserBalance = await getTokenBalance(connection, userTokenAccount);
@@ -198,7 +198,7 @@ describe("ptf_vault Unit Tests", () => {
       
       recordInstructionCoverage("ptf_vault", "withdraw");
       const computeUnits = await getComputeUnitsUsed(connection, tx);
-      recordGasUsage("ptf_vault", "withdraw", computeUnits);
+      await recordGasUsage(connection, "ptf_vault", "withdraw", computeUnits);
       
       // Verify balances
       const finalUserBalance = await getTokenBalance(connection, userTokenAccount);

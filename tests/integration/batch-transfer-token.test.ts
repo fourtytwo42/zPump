@@ -119,7 +119,7 @@ describe("Batch Transfer Operations - Token Tests", () => {
       
       recordInstructionCoverage("ptf_pool", "execute_batch_transfer");
       const computeUnits = await getComputeUnitsUsed(connection, tx);
-      recordGasUsage("ptf_pool", "execute_batch_transfer", computeUnits);
+      await recordGasUsage(connection, "ptf_pool", "execute_batch_transfer", computeUnits);
       
       expect(tx).to.be.a("string");
     } catch (e: any) {

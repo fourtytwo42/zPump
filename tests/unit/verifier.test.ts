@@ -60,7 +60,7 @@ describe("ptf_verifier_groth16 Unit Tests", () => {
       
       recordInstructionCoverage("ptf_verifier_groth16", "initialize_verifying_key");
       const computeUnits = await getComputeUnitsUsed(connection, tx);
-      recordGasUsage("ptf_verifier_groth16", "initialize_verifying_key", computeUnits);
+      await recordGasUsage(connection, "ptf_verifier_groth16", "initialize_verifying_key", computeUnits);
       
       // Verify verifying key account exists and has correct data
       const verifyingKeyAccount = await verifierProgram.account.verifyingKeyAccount.fetch(verifyingKey);
@@ -125,7 +125,7 @@ describe("ptf_verifier_groth16 Unit Tests", () => {
       
       recordInstructionCoverage("ptf_verifier_groth16", "verify_groth16");
       const computeUnits = await getComputeUnitsUsed(connection, tx);
-      recordGasUsage("ptf_verifier_groth16", "verify_groth16", computeUnits);
+      await recordGasUsage(connection, "ptf_verifier_groth16", "verify_groth16", computeUnits);
       
       // Verify succeeded (placeholder accepts all valid-sized proofs)
       expect(tx).to.be.a("string");
