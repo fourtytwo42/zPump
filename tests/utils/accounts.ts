@@ -38,7 +38,8 @@ export async function getAccountData<T>(
   address: PublicKey,
 ): Promise<T | null> {
   try {
-    const account = await program.account[Object.keys(program.account)[0]].fetch(address);
+    const accountName = Object.keys(program.account)[0];
+    const account = await (program.account as any)[accountName].fetch(address);
     return account as T;
   } catch (e) {
     return null;
