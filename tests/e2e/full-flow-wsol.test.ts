@@ -93,8 +93,8 @@ describe("End-to-End Tests - Full Flow with wSOL", () => {
       createSyncNativeInstruction(userWSOLAccount),
     );
     
-    await connection.sendTransaction(wrapTx, [user]);
-    await connection.confirmTransaction(await connection.getLatestBlockhash());
+    const wrapTxSig = await connection.sendTransaction(wrapTx, [user]);
+    await connection.confirmTransaction(wrapTxSig);
     
     // Derive pool addresses for wSOL
     poolAddresses = derivePoolAddresses(WSOL_MINT);

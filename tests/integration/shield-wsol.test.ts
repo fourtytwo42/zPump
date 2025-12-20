@@ -88,7 +88,7 @@ describe("Shield Operations - wSOL Tests", () => {
     );
     
     await connection.sendTransaction(wrapTx, [user]);
-    await connection.confirmTransaction(await connection.getLatestBlockhash());
+    // Transaction already confirmed by sendAndConfirmTransaction
     
     // Derive pool addresses for wSOL
     poolAddresses = derivePoolAddresses(WSOL_MINT);

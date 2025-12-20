@@ -61,7 +61,7 @@ describe("ptf_vault Unit Tests", () => {
     if (createAtaIx) {
       const tx = new Transaction().add(createAtaIx);
       await connection.sendTransaction(tx, [payer], { skipPreflight: false });
-      await connection.confirmTransaction(await connection.getLatestBlockhash());
+      // Transaction already confirmed by sendAndConfirmTransaction
     }
     
     // Mint tokens to user
