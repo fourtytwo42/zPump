@@ -84,7 +84,7 @@ describe("ptf_verifier_groth16 Unit Tests", () => {
     const verifyingKeyInfo = await connection.getAccountInfo(verifyingKey);
     if (!verifyingKeyInfo) {
       // Initialize it first
-      const keyData = new Uint8Array(100);
+      const keyData = Buffer.alloc(100);
       keyData.fill(42);
       try {
         await verifierProgram.methods
