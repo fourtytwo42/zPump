@@ -5,11 +5,11 @@ import * as ptfVaultIdl from "../../target/idl/ptf_vault.json";
 import * as ptfVerifierIdl from "../../target/idl/ptf_verifier_groth16.json";
 import * as ptfPoolIdl from "../../target/idl/ptf_pool.json";
 
-// Program IDs from Anchor.toml
-export const FACTORY_PROGRAM_ID = new PublicKey("AG2eT5fyfPdv6wjDWCxr5Y9JBK9cD5rahLzuz2UbbBvg");
-export const VAULT_PROGRAM_ID = new PublicKey("iHWU2DfontkA7ZT2C6hFph3SSpkTjPm2a4t2C54CxSw");
-export const VERIFIER_PROGRAM_ID = new PublicKey("DMvUxHwdJGkaRAJFXEKgDxsmVXL3gYttNsVP16xEr9TE");
-export const POOL_PROGRAM_ID = new PublicKey("9ykdCimDZGsCBB9ihC9QfDKib4KxYzpRZZTVrGp425Ku");
+// Program IDs from Anchor.toml (synced with anchor keys sync)
+export const FACTORY_PROGRAM_ID = new PublicKey("4NHiLQJwmgQW9hGrxeAPESXLvgMgEdBfRdAa3Wxiyf8u");
+export const VAULT_PROGRAM_ID = new PublicKey("ArUznHH2tESKsknoiW3HhURY46MzXyJL55HuGdKUXQEy");
+export const VERIFIER_PROGRAM_ID = new PublicKey("DBGY7sSPJ8434jxU1a5qS24JDCYhmxZfAMfe1fumkvSZ");
+export const POOL_PROGRAM_ID = new PublicKey("6MLrNAydScBBWq6vFXPLjahvxjF1PzauuSYTuLS7yfYC");
 
 export function getFactoryProgram(
   connection: Connection,

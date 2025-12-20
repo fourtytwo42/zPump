@@ -8,7 +8,7 @@ pub use errors::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("AG2eT5fyfPdv6wjDWCxr5Y9JBK9cD5rahLzuz2UbbBvg");
+declare_id!("4NHiLQJwmgQW9hGrxeAPESXLvgMgEdBfRdAa3Wxiyf8u");
 
 #[program]
 pub mod ptf_factory {

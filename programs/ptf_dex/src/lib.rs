@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("EkCLPUfEtSMJsEwJbVtDifeZ5H4dJREkMeFXAxwBde6b");
+declare_id!("3UWzz6ZsPxnbCjJ3MfBrwpbMC54jPXHfMZHxhytVVYPC");
 
 #[program]
 pub mod ptf_dex {

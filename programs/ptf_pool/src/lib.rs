@@ -12,7 +12,7 @@ pub use errors::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("9ykdCimDZGsCBB9ihC9QfDKib4KxYzpRZZTVrGp425Ku");
+declare_id!("6MLrNAydScBBWq6vFXPLjahvxjF1PzauuSYTuLS7yfYC");
 
 // Custom entrypoint will be added after first build
 // For now, we use Anchor's standard entrypoint

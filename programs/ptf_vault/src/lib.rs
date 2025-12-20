@@ -8,7 +8,7 @@ pub use errors::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("iHWU2DfontkA7ZT2C6hFph3SSpkTjPm2a4t2C54CxSw");
+declare_id!("ArUznHH2tESKsknoiW3HhURY46MzXyJL55HuGdKUXQEy");
 
 #[program]
 pub mod ptf_vault {

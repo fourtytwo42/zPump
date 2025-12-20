@@ -8,7 +8,7 @@ pub use errors::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("DMvUxHwdJGkaRAJFXEKgDxsmVXL3gYttNsVP16xEr9TE");
+declare_id!("DBGY7sSPJ8434jxU1a5qS24JDCYhmxZfAMfe1fumkvSZ");
 
 #[program]
 pub mod ptf_verifier_groth16 {
