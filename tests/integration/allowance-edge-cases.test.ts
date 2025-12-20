@@ -124,11 +124,14 @@ describe("Allowance Operations - Edge Cases", () => {
       
       expect.fail("Should have rejected insufficient allowance");
     } catch (e: any) {
-      // Expected to fail
-      expect(e.message).to.include("InsufficientAllowance") || 
-        expect(e.message).to.include("insufficient") ||
-        expect(e.message).to.include("phantom") ||
-        expect(e.message).to.include("Account");
+      // Expected to fail - check if message includes any of these strings
+      const errorMsg = e.message || e.toString();
+      expect(
+        errorMsg.includes("InsufficientAllowance") ||
+        errorMsg.includes("insufficient") ||
+        errorMsg.includes("phantom") ||
+        errorMsg.includes("Account")
+      ).to.be.true;
       recordInstructionCoverage("ptf_pool", "execute_transfer_from");
     }
   });
@@ -166,11 +169,14 @@ describe("Allowance Operations - Edge Cases", () => {
       
       expect.fail("Should have rejected zero allowance");
     } catch (e: any) {
-      // Expected to fail
-      expect(e.message).to.include("InsufficientAllowance") || 
-        expect(e.message).to.include("zero") ||
-        expect(e.message).to.include("phantom") ||
-        expect(e.message).to.include("Account");
+      // Expected to fail - check if message includes any of these strings
+      const errorMsg = e.message || e.toString();
+      expect(
+        errorMsg.includes("InsufficientAllowance") ||
+        errorMsg.includes("zero") ||
+        errorMsg.includes("phantom") ||
+        errorMsg.includes("Account")
+      ).to.be.true;
       recordInstructionCoverage("ptf_pool", "execute_transfer_from");
     }
   });

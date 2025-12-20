@@ -1,4 +1,6 @@
 // Coverage tracking utilities
+import * as fs from "fs";
+import * as path from "path";
 
 export interface CoverageReport {
   program: string;
@@ -14,7 +16,36 @@ export interface InstructionCoverage {
   testCount: number;
 }
 
-const coverageData: Map<string, InstructionCoverage[]> = new Map();
+const COVERAGE_FILE = path.join(__dirname, "..", "coverage-data.json");
+
+function loadCoverageData(): Map<string, InstructionCoverage[]> {
+  const data = new Map<string, InstructionCoverage[]>();
+  try {
+    if (fs.existsSync(COVERAGE_FILE)) {
+      const fileData = JSON.parse(fs.readFileSync(COVERAGE_FILE, "utf-8"));
+      for (const [program, instructions] of Object.entries(fileData)) {
+        data.set(program, instructions as InstructionCoverage[]);
+      }
+    }
+  } catch (e) {
+    // File doesn't exist or is invalid, start fresh
+  }
+  return data;
+}
+
+function saveCoverageData(data: Map<string, InstructionCoverage[]>) {
+  try {
+    const fileData: Record<string, InstructionCoverage[]> = {};
+    for (const [program, instructions] of data.entries()) {
+      fileData[program] = instructions;
+    }
+    fs.writeFileSync(COVERAGE_FILE, JSON.stringify(fileData, null, 2));
+  } catch (e) {
+    // Ignore write errors
+  }
+}
+
+const coverageData: Map<string, InstructionCoverage[]> = loadCoverageData();
 
 export function recordInstructionCoverage(
   program: string,
@@ -37,11 +68,22 @@ export function recordInstructionCoverage(
       testCount: 1,
     });
   }
+  
+  // Persist coverage data after each record
+  saveCoverageData(coverageData);
 }
+
+// Define total instructions per program
+const TOTAL_INSTRUCTIONS: Record<string, number> = {
+  "ptf_pool": 11, // prepare_shield, execute_shield_v2, prepare_unshield, execute_unshield_verify, execute_unshield_update, execute_unshield_withdraw, execute_transfer, execute_transfer_from, approve_allowance, execute_batch_transfer, execute_batch_transfer_from
+  "ptf_factory": 3, // initialize_factory, register_mint, create_verifying_key
+  "ptf_vault": 2, // deposit, withdraw
+  "ptf_verifier_groth16": 2, // initialize_verifying_key, verify_groth16
+};
 
 export function generateCoverageReport(program: string): CoverageReport {
   const instructions = coverageData.get(program) || [];
-  const totalInstructions = instructions.length;
+  const totalInstructions = TOTAL_INSTRUCTIONS[program] || instructions.length;
   const coveredInstructions = instructions.filter((i) => i.covered).length;
   const coveragePercentage = totalInstructions > 0
     ? (coveredInstructions / totalInstructions) * 100
@@ -58,7 +100,8 @@ export function generateCoverageReport(program: string): CoverageReport {
 
 export function getAllCoverageReports(): CoverageReport[] {
   const reports: CoverageReport[] = [];
-  for (const program of coverageData.keys()) {
+  // Generate reports for all known programs
+  for (const program of Object.keys(TOTAL_INSTRUCTIONS)) {
     reports.push(generateCoverageReport(program));
   }
   return reports;

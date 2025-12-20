@@ -60,9 +60,12 @@ describe("ptf_vault Unit Tests", () => {
     
     if (createAtaIx) {
       const tx = new Transaction().add(createAtaIx);
-      await connection.sendTransaction(tx, [payer], { skipPreflight: false });
-      // Transaction already confirmed by sendAndConfirmTransaction
+      const sig = await connection.sendTransaction(tx, [payer], { skipPreflight: false });
+      await connection.confirmTransaction(sig, "confirmed");
     }
+    
+    // Wait a bit for account to be ready
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     // Mint tokens to user
     await mintTo(
@@ -80,8 +83,14 @@ describe("ptf_vault Unit Tests", () => {
       VAULT_PROGRAM_ID,
     );
     
-    // Create vault token account (ATA for vault state)
-    vaultTokenAccount = getATAAddress(testMint, vaultState);
+    // Vault token account is a regular token account, not an ATA
+    // It will be created by the pool program when initializing the vault
+    // For unit tests, we'll use a placeholder - the actual account will be created
+    // when the vault state is initialized by the pool program
+    // For now, we'll create a dummy keypair for the vault token account
+    // In real usage, this would be created by the pool program
+    const vaultTokenAccountKeypair = Keypair.generate();
+    vaultTokenAccount = vaultTokenAccountKeypair.publicKey;
     
     // Note: Vault state would normally be created by pool program
     // For unit tests, we'll test the deposit/withdraw logic

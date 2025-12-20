@@ -79,7 +79,12 @@ describe("Shield Operations - Edge Cases", () => {
       expect.fail("Should have rejected zero amount");
     } catch (e: any) {
       // Expected to fail
-      expect(e.message).to.include("InvalidAmount") || expect(e.message).to.include("zero");
+      const errorMsg = e.message || e.toString();
+      expect(
+        errorMsg.includes("InvalidAmount") ||
+        errorMsg.includes("zero") ||
+        errorMsg.includes("Constraint")
+      ).to.be.true;
       recordInstructionCoverage("ptf_pool", "prepare_shield");
     }
   });

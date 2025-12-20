@@ -47,17 +47,24 @@ export function generateMockProof(
   }
   
   // If specific inputs provided, incorporate them
-  if (inputs?.nullifier) {
-    publicInputs.set(inputs.nullifier.slice(0, 32), 0);
+  if (inputs?.nullifier && publicInputsSize >= 32) {
+    publicInputs.set(inputs.nullifier.slice(0, Math.min(32, publicInputsSize)), 0);
   }
-  if (inputs?.commitment) {
-    publicInputs.set(inputs.commitment.slice(0, 32), 32);
+  if (inputs?.commitment && publicInputsSize >= 64) {
+    // Only set commitment if we have at least 64 bytes (2 * 32)
+    publicInputs.set(inputs.commitment.slice(0, Math.min(32, publicInputsSize - 32)), 32);
   }
-  if (inputs?.amount !== undefined) {
+  if (inputs?.amount !== undefined && publicInputsSize >= 8) {
     const amountBytes = new Uint8Array(8);
     const view = new DataView(amountBytes.buffer);
-    view.setBigUint64(0, BigInt(inputs.amount), true); // little-endian
-    publicInputs.set(amountBytes, publicInputsSize - 8);
+    // Clamp amount to safe range for BigInt
+    const safeAmount = Math.max(0, Math.min(inputs.amount, Number.MAX_SAFE_INTEGER));
+    view.setBigUint64(0, BigInt(safeAmount), true); // little-endian
+    const offset = Math.max(0, publicInputsSize - 8);
+    const bytesToSet = Math.min(8, publicInputsSize - offset);
+    if (bytesToSet > 0) {
+      publicInputs.set(amountBytes.slice(0, bytesToSet), offset);
+    }
   }
   
   return {

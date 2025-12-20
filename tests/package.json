@@ -6,7 +6,7 @@
     "test:unit": "mocha --timeout 100000 --require ts-node/register tests/unit/**/*.test.ts",
     "test:integration": "mocha --timeout 100000 --require ts-node/register tests/integration/**/*.test.ts",
     "test:e2e": "mocha --timeout 100000 --require ts-node/register tests/e2e/**/*.test.ts",
-    "coverage": "ts-node tests/coverage-report.ts"
+    "coverage": "ts-node coverage-report.ts"
   },
   "devDependencies": {
     "@coral-xyz/anchor": "^0.30.1",

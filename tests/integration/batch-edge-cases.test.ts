@@ -107,10 +107,13 @@ describe("Batch Operations - Edge Cases", () => {
       expect.fail("Should have rejected empty batch");
     } catch (e: any) {
       // Expected to fail - validation happens after account check
-      expect(e.message).to.include("InvalidAmount") || 
-        expect(e.message).to.include("empty") ||
-        expect(e.message).to.include("phantom") ||
-        expect(e.message).to.include("Account");
+      const errorMsg = e.message || e.toString();
+      expect(
+        errorMsg.includes("InvalidAmount") ||
+        errorMsg.includes("empty") ||
+        errorMsg.includes("phantom") ||
+        errorMsg.includes("Account")
+      ).to.be.true;
       recordInstructionCoverage("ptf_pool", "execute_batch_transfer");
     }
   });

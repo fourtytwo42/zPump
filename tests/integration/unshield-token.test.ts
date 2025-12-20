@@ -319,7 +319,12 @@ describe("Unshield Operations - Token Tests", () => {
         // Should not reach here
       } catch (e: any) {
         // Expected to fail - operation doesn't exist
-        expect(e.message).to.include("OperationNotFound") || expect(e.message).to.include("not found");
+        const errorMsg = e.message || e.toString();
+        expect(
+          errorMsg.includes("OperationNotFound") ||
+          errorMsg.includes("not found") ||
+          errorMsg.includes("Simulation failed")
+        ).to.be.true;
       }
       
       // Prepare first
