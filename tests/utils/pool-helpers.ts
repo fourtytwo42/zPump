@@ -83,13 +83,10 @@ export function deriveVaultStateForMint(originMint: PublicKey, vaultProgramId: P
 }
 
 /**
- * Derive vault state PDA for a mint
+ * Derive vault state PDA for a mint (alias)
  */
 export function deriveVaultState(originMint: PublicKey, vaultProgramId: PublicKey): [PublicKey, number] {
-  return derivePDA(
-    [Buffer.from("vault"), originMint.toBuffer()],
-    vaultProgramId,
-  );
+  return deriveVaultStateForMint(originMint, vaultProgramId);
 }
 
 /**
@@ -108,16 +105,6 @@ export function deriveAllowance(
       pool.toBuffer(),
     ],
     POOL_PROGRAM_ID,
-  );
-}
-
-/**
- * Derive vault state PDA for a mint
- */
-export function deriveVaultStateForMint(originMint: PublicKey, vaultProgramId: PublicKey): [PublicKey, number] {
-  return derivePDA(
-    [Buffer.from("vault"), originMint.toBuffer()],
-    vaultProgramId,
   );
 }
 
