@@ -112,6 +112,16 @@ export function deriveAllowance(
 }
 
 /**
+ * Derive vault state PDA for a mint
+ */
+export function deriveVaultStateForMint(originMint: PublicKey, vaultProgramId: PublicKey): [PublicKey, number] {
+  return derivePDA(
+    [Buffer.from("vault"), originMint.toBuffer()],
+    vaultProgramId,
+  );
+}
+
+/**
  * Generate operation ID (hash of operation data)
  * This matches the placeholder in prepare_shield/prepare_unshield
  */
