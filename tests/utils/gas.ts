@@ -11,7 +11,42 @@ export interface GasReport {
 
 const gasReports: GasReport[] = [];
 
+export async function getComputeUnitsUsed(
+  connection: Connection,
+  signature: TransactionSignature,
+): Promise<number> {
+  const tx = await connection.getTransaction(signature, {
+    commitment: "confirmed",
+    maxSupportedTransactionVersion: 0,
+  });
+  return tx?.meta?.computeUnitsConsumed || 0;
+}
+
 export async function recordGasUsage(
+  connection: Connection,
+  program: string,
+  operation: string,
+  computeUnits: number,
+): Promise<void> {
+  const withinLimit = computeUnits <= MAX_COMPUTE_UNITS;
+  
+  const report: GasReport = {
+    operation: `${program}::${operation}`,
+    computeUnits,
+    withinLimit,
+    signature: "" as TransactionSignature, // Not needed for this version
+  };
+  
+  gasReports.push(report);
+  
+  if (!withinLimit) {
+    console.warn(
+      `WARNING: ${program}::${operation} exceeded compute limit: ${computeUnits} > ${MAX_COMPUTE_UNITS}`,
+    );
+  }
+}
+
+export async function recordGasUsageFromSignature(
   connection: Connection,
   operation: string,
   signature: TransactionSignature,
