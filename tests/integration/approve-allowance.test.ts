@@ -30,6 +30,7 @@ import {
 import {
   derivePoolAddresses,
   deriveAllowance,
+  generateTransferOperation,
 } from "../utils/pool-helpers";
 
 describe("Allowance Operations", () => {
@@ -63,6 +64,18 @@ describe("Allowance Operations", () => {
     
     // Derive pool addresses
     poolAddresses = derivePoolAddresses(testMint);
+    
+    // Setup verifying key
+    const circuitTag = new Uint8Array(32).fill(1);
+    const version = 1;
+    [verifyingKey] = derivePDA(
+      [
+        Buffer.from("verifying-key"),
+        circuitTag,
+        Buffer.from(version.toString()),
+      ],
+      VERIFIER_PROGRAM_ID,
+    );
     
     // Initialize factory if needed
     const [factoryState] = derivePDA(
