@@ -40,3 +40,133 @@ export function generateTestNullifier(): Uint8Array {
   return nullifier;
 }
 
+/**
+ * Test scenarios for different operation types
+ */
+export interface ShieldScenario {
+  amount: number;
+  commitment: Uint8Array;
+  description: string;
+}
+
+export interface UnshieldScenario {
+  nullifier: Uint8Array;
+  amount: number;
+  recipient: PublicKey;
+  description: string;
+}
+
+export interface TransferScenario {
+  nullifier: Uint8Array;
+  commitment: Uint8Array;
+  amount: number;
+  description: string;
+}
+
+/**
+ * Generate shield test scenarios
+ */
+export function generateShieldScenarios(): ShieldScenario[] {
+  return [
+    {
+      amount: TEST_AMOUNTS.MIN,
+      commitment: generateTestCommitment(),
+      description: "Minimum amount shield",
+    },
+    {
+      amount: TEST_AMOUNTS.SMALL,
+      commitment: generateTestCommitment(),
+      description: "Small amount shield",
+    },
+    {
+      amount: TEST_AMOUNTS.MEDIUM,
+      commitment: generateTestCommitment(),
+      description: "Medium amount shield",
+    },
+    {
+      amount: TEST_AMOUNTS.LARGE,
+      commitment: generateTestCommitment(),
+      description: "Large amount shield",
+    },
+  ];
+}
+
+/**
+ * Generate unshield test scenarios
+ */
+export function generateUnshieldScenarios(recipient: PublicKey): UnshieldScenario[] {
+  return [
+    {
+      nullifier: generateTestNullifier(),
+      amount: TEST_AMOUNTS.MIN,
+      recipient,
+      description: "Minimum amount unshield",
+    },
+    {
+      nullifier: generateTestNullifier(),
+      amount: TEST_AMOUNTS.SMALL,
+      recipient,
+      description: "Small amount unshield",
+    },
+    {
+      nullifier: generateTestNullifier(),
+      amount: TEST_AMOUNTS.MEDIUM,
+      recipient,
+      description: "Medium amount unshield",
+    },
+  ];
+}
+
+/**
+ * Generate transfer test scenarios
+ */
+export function generateTransferScenarios(): TransferScenario[] {
+  return [
+    {
+      nullifier: generateTestNullifier(),
+      commitment: generateTestCommitment(),
+      amount: TEST_AMOUNTS.SMALL,
+      description: "Small amount transfer",
+    },
+    {
+      nullifier: generateTestNullifier(),
+      commitment: generateTestCommitment(),
+      amount: TEST_AMOUNTS.MEDIUM,
+      description: "Medium amount transfer",
+    },
+  ];
+}
+
+/**
+ * Generate multi-user test data
+ */
+export function generateMultiUserData(count: number): {
+  users: Keypair[];
+  commitments: Uint8Array[];
+  nullifiers: Uint8Array[];
+} {
+  const users: Keypair[] = [];
+  const commitments: Uint8Array[] = [];
+  const nullifiers: Uint8Array[] = [];
+  
+  for (let i = 0; i < count; i++) {
+    users.push(generateTestKeypair());
+    commitments.push(generateTestCommitment());
+    nullifiers.push(generateTestNullifier());
+  }
+  
+  return { users, commitments, nullifiers };
+}
+
+/**
+ * Edge case test data
+ */
+export const EDGE_CASE_DATA = {
+  invalidAmount: 0,
+  tooLargeAmount: Number.MAX_SAFE_INTEGER + 1,
+  invalidCommitment: new Uint8Array(31), // Wrong size
+  invalidNullifier: new Uint8Array(31), // Wrong size
+  emptyCommitment: new Uint8Array(32).fill(0),
+  emptyNullifier: new Uint8Array(32).fill(0),
+};
+
