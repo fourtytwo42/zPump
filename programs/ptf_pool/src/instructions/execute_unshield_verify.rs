@@ -28,20 +28,27 @@ pub fn execute_unshield_verify(
     // Verify proof via CPI to verifier program
     // Extract proof and public inputs from operation data
     // This is simplified - full implementation would parse the operation data properly
-    let proof = vec![0u8; 192]; // Placeholder - would extract from operation
-    let public_inputs = operation.data.clone();
+    // For now, we extract from operation data assuming it's structured as:
+    // [0..192]: proof, [192..]: public_inputs
+    let proof = if operation.data.len() >= 192 {
+        operation.data[0..192].to_vec()
+    } else {
+        // Fallback: create placeholder proof if data is too short
+        vec![0u8; 192]
+    };
+    let public_inputs = if operation.data.len() > 192 {
+        operation.data[192..].to_vec()
+    } else {
+        operation.data.clone()
+    };
     
     // CPI to verifier program
-    // Note: CPI module will be available after first build
-    // For now, this is a placeholder that will be implemented after the first build
-    msg!("Verifying proof via CPI (placeholder - will be implemented after build)");
-    // Once the program is built, we can use:
-    // let cpi_program = ctx.accounts.verifier_program.to_account_info();
-    // let cpi_accounts = ptf_verifier_groth16::cpi::accounts::VerifyGroth16 {
-    //     verifying_key: ctx.accounts.verifying_key.to_account_info(),
-    // };
-    // let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
-    // ptf_verifier_groth16::cpi::verify_groth16(cpi_ctx, proof, public_inputs)?;
+    let cpi_program = ctx.accounts.verifier_program.to_account_info();
+    let cpi_accounts = ptf_verifier_groth16::cpi::accounts::VerifyGroth16 {
+        verifying_key: ctx.accounts.verifying_key.to_account_info(),
+    };
+    let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+    ptf_verifier_groth16::cpi::verify_groth16(cpi_ctx, proof, public_inputs)?;
     
     // Update operation status to Verified
     let mut vault_data = ctx.accounts.proof_vault.try_borrow_mut_data()?;

@@ -172,12 +172,14 @@ export async function bootstrapPrivateDevnet(
 
 if (require.main === module) {
   const connection = new Connection("http://127.0.0.1:8899", "confirmed");
-  const payer = Keypair.fromSecretKey(
-    // Load from file or generate
-    new Uint8Array(64).fill(0), // Placeholder
-  );
   
-  bootstrapPrivateDevnet(connection, payer)
+  // Generate a payer keypair for testing
+  const payer = Keypair.generate();
+  
+  // Airdrop SOL to payer
+  connection.requestAirdrop(payer.publicKey, 10 * 1e9)
+    .then((sig) => connection.confirmTransaction(sig))
+    .then(() => bootstrapPrivateDevnet(connection, payer))
     .then(() => process.exit(0))
     .catch((err) => {
       console.error(err);

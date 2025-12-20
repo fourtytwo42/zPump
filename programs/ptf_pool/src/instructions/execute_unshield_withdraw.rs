@@ -31,20 +31,16 @@ pub fn execute_unshield_withdraw(
     );
     
     // Withdraw from vault via CPI
-    // Note: CPI module will be available after first build
-    // For now, this is a placeholder that will be implemented after the first build
-    msg!("Withdrawing from vault via CPI (placeholder - will be implemented after build)");
-    // Once the program is built, we can use:
-    // let cpi_program = ctx.accounts.vault_program.to_account_info();
-    // let cpi_accounts = ptf_vault::cpi::accounts::Withdraw {
-    //     vault: ctx.accounts.vault_state.to_account_info(),
-    //     authority: ctx.accounts.pool_state.to_account_info(),
-    //     vault_token_account: ctx.accounts.vault_token_account.to_account_info(),
-    //     user_token_account: ctx.accounts.user_token_account.to_account_info(),
-    //     token_program: ctx.accounts.token_program.to_account_info(),
-    // };
-    // let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
-    // ptf_vault::cpi::withdraw(cpi_ctx, amount)?;
+    let cpi_program = ctx.accounts.vault_program.to_account_info();
+    let cpi_accounts = ptf_vault::cpi::accounts::Withdraw {
+        vault: ctx.accounts.vault_state.to_account_info(),
+        authority: ctx.accounts.pool_state.to_account_info(),
+        vault_token_account: ctx.accounts.vault_token_account.to_account_info(),
+        user_token_account: ctx.accounts.user_token_account.to_account_info(),
+        token_program: ctx.accounts.token_program.to_account_info(),
+    };
+    let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+    ptf_vault::cpi::withdraw(cpi_ctx, amount)?;
     
     // Remove operation from vault
     let mut vault_data = ctx.accounts.proof_vault.try_borrow_mut_data()?;
