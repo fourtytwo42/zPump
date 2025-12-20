@@ -16,8 +16,10 @@ import { generateKeypair } from "../utils/keypairs";
 import {
   getPoolProgram,
   getFactoryProgram,
+  getVerifierProgram,
   POOL_PROGRAM_ID,
   FACTORY_PROGRAM_ID,
+  VERIFIER_PROGRAM_ID,
 } from "../utils/programs";
 import { recordInstructionCoverage } from "../utils/coverage";
 import { recordGasUsage, getComputeUnitsUsed, verifyAllWithinGasLimit } from "../utils/gas";
@@ -38,6 +40,7 @@ describe("Allowance Operations", () => {
   let factoryProgram: any;
   let testMint: PublicKey;
   let poolAddresses: any;
+  let verifyingKey: PublicKey;
   
   before(async () => {
     connection = getConnection();
