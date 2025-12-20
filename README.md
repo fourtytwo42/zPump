@@ -74,9 +74,21 @@ npm run copy-idls
 
 ### 3. Start Local Validator
 
+**Option A: Automated (may have issues)**
 ```bash
-# Start validator with upgrade authority
 npm run start-validator
+```
+
+**Option B: Manual (Recommended)**
+See [VALIDATOR_SETUP.md](./VALIDATOR_SETUP.md) for detailed manual setup instructions.
+
+Quick start:
+```bash
+# Terminal 1: Start validator
+solana-test-validator --reset --rpc-port 8899
+
+# Terminal 2: Deploy programs
+npm run deploy-all
 ```
 
 ### 4. Bootstrap Environment
@@ -86,6 +98,8 @@ npm run start-validator
 npm run bootstrap-wsol
 npm run bootstrap
 ```
+
+**Note:** If bootstrap scripts fail, ensure the validator is running and programs are deployed (see [VALIDATOR_SETUP.md](./VALIDATOR_SETUP.md)).
 
 ### 5. Run Tests
 
