@@ -2,7 +2,7 @@
   "name": "zpump-tests",
   "version": "0.1.0",
   "scripts": {
-    "test": "mocha --timeout 100000 --require ts-node/register --recursive --exit",
+    "test": "mocha --timeout 100000 --require ts-node/register '**/*.test.ts' --exit",
     "test:unit": "mocha --timeout 100000 --require ts-node/register tests/unit/**/*.test.ts",
     "test:integration": "mocha --timeout 100000 --require ts-node/register tests/integration/**/*.test.ts",
     "test:e2e": "mocha --timeout 100000 --require ts-node/register tests/e2e/**/*.test.ts",
