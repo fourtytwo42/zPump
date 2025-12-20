@@ -23,7 +23,7 @@ import {
 } from "../utils/programs";
 import { recordInstructionCoverage } from "../utils/coverage";
 import { recordGasUsage, getComputeUnitsUsed, verifyAllWithinGasLimit } from "../utils/gas";
-import { TEST_AMOUNTS } from "../fixtures/test-data";
+import { TEST_AMOUNTS, generateTestNullifier } from "../fixtures/test-data";
 import {
   derivePDA,
 } from "../utils/accounts";
