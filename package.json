@@ -10,6 +10,7 @@
     "copy-idls": "./scripts/copy-idls.sh",
     "reset-env": "./scripts/reset-dev-env.sh",
     "start-validator": "./scripts/start-private-devnet-with-upgrade.sh",
+    "deploy-all": "./scripts/deploy-all.sh",
     "bootstrap": "cd scripts && npx tsx bootstrap-private-devnet.ts",
     "bootstrap-wsol": "cd scripts && npx tsx bootstrap-wsol.ts"
   },
