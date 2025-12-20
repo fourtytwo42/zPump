@@ -35,6 +35,7 @@ describe("Allowance Operations - Edge Cases", () => {
   let factoryProgram: any;
   let testMint: PublicKey;
   let poolAddresses: any;
+  let verifyingKey: PublicKey;
   
   before(async () => {
     connection = getConnection();
