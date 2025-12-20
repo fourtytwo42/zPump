@@ -23,9 +23,8 @@ export function getFactoryProgram(
   );
   return new Program(
     ptfFactoryIdl as Idl,
-    FACTORY_PROGRAM_ID,
     provider,
-  );
+  ) as Program;
 }
 
 export function getVaultProgram(
@@ -40,9 +39,8 @@ export function getVaultProgram(
   );
   return new Program(
     ptfVaultIdl as Idl,
-    VAULT_PROGRAM_ID,
     provider,
-  );
+  ) as Program;
 }
 
 export function getVerifierProgram(
@@ -57,9 +55,8 @@ export function getVerifierProgram(
   );
   return new Program(
     ptfVerifierIdl as Idl,
-    VERIFIER_PROGRAM_ID,
     provider,
-  );
+  ) as Program;
 }
 
 export function getPoolProgram(
@@ -74,8 +71,7 @@ export function getPoolProgram(
   );
   return new Program(
     ptfPoolIdl as Idl,
-    POOL_PROGRAM_ID,
     provider,
-  );
+  ) as Program;
 }
 
