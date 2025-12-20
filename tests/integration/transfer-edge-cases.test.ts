@@ -15,11 +15,13 @@ import {
   VERIFIER_PROGRAM_ID,
 } from "../utils/programs";
 import { recordInstructionCoverage } from "../utils/coverage";
+import { TEST_AMOUNTS, generateTestNullifier } from "../fixtures/test-data";
 import {
   derivePDA,
 } from "../utils/accounts";
 import {
   derivePoolAddresses,
+  generateTransferOperation,
 } from "../utils/pool-helpers";
 import { createMint } from "@solana/spl-token";
 
