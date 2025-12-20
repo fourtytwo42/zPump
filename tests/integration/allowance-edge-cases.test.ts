@@ -11,15 +11,19 @@ import { generateKeypair } from "../utils/keypairs";
 import {
   getPoolProgram,
   getFactoryProgram,
+  getVerifierProgram,
   FACTORY_PROGRAM_ID,
+  VERIFIER_PROGRAM_ID,
 } from "../utils/programs";
 import { recordInstructionCoverage } from "../utils/coverage";
-import { TEST_AMOUNTS } from "../fixtures/test-data";
+import { TEST_AMOUNTS, generateTestNullifier } from "../fixtures/test-data";
 import {
   derivePDA,
 } from "../utils/accounts";
 import {
   derivePoolAddresses,
+  deriveAllowance,
+  generateTransferOperation,
 } from "../utils/pool-helpers";
 import { createMint } from "@solana/spl-token";
 
@@ -82,8 +86,44 @@ describe("Allowance Operations - Edge Cases", () => {
   
   it("should reject transferFrom with zero allowance", async () => {
     // Test that transferFrom fails with zero allowance
-    recordInstructionCoverage("ptf_pool", "execute_transfer_from");
-    expect(true).to.be.true;
+    const amount = TEST_AMOUNTS.SMALL;
+    const nullifier = generateTestNullifier();
+    const transferOp = generateTransferOperation(nullifier, amount);
+    
+    const [allowancePDA] = deriveAllowance(
+      owner.publicKey,
+      spender.publicKey,
+      poolAddresses.poolState,
+    );
+    
+    try {
+      await poolProgram.methods
+        .executeTransferFrom({
+          proof: Array.from(transferOp.proof),
+          publicInputs: Array.from(transferOp.publicInputs),
+        })
+        .accounts({
+          _phantom: owner.publicKey, // Phantom account for raw instruction
+        })
+        .remainingAccounts([
+          { pubkey: poolAddresses.poolState, isSigner: false, isWritable: true },
+          { pubkey: poolAddresses.commitmentTree, isSigner: false, isWritable: true },
+          { pubkey: poolAddresses.nullifierSet, isSigner: false, isWritable: true },
+          { pubkey: allowancePDA, isSigner: false, isWritable: true },
+          { pubkey: verifyingKey, isSigner: false, isWritable: false },
+          { pubkey: VERIFIER_PROGRAM_ID, isSigner: false, isWritable: false },
+        ])
+        .rpc();
+      
+      expect.fail("Should have rejected zero allowance");
+    } catch (e: any) {
+      // Expected to fail
+      expect(e.message).to.include("InsufficientAllowance") || 
+        expect(e.message).to.include("zero") ||
+        expect(e.message).to.include("phantom") ||
+        expect(e.message).to.include("Account");
+      recordInstructionCoverage("ptf_pool", "execute_transfer_from");
+    }
   });
   
   it("should reject approve with zero amount", async () => {
