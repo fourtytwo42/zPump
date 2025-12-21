@@ -1,7 +1,7 @@
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { Program, AnchorProvider, Wallet } from "@coral-xyz/anchor";
 import { POOL_PROGRAM_ID } from "@/lib/solana/programs";
-import idl from "@/app/idl/ptf_pool.json";
+import idl from "../../app/idl/ptf_pool.json";
 
 export interface TransferParams {
   nullifier: Uint8Array;
@@ -16,7 +16,7 @@ export async function buildTransferTransaction(
   params: TransferParams
 ): Promise<Transaction> {
   const provider = new AnchorProvider(connection, wallet, {});
-  const program = new Program(idl as any, POOL_PROGRAM_ID, provider);
+  const program = new Program(idl as any, provider);
 
   // Generate proof via API
   const proofResponse = await fetch("/api/proof", {
