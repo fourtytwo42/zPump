@@ -4,14 +4,15 @@ import { useQuery } from "@tanstack/react-query";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
-import { loadLocalWallet, walletToKeypair } from "@/lib/solana/wallet";
+import { walletToKeypair } from "@/lib/solana/wallet";
+import { useLocalWallet } from "./useLocalWallet";
 
 export function useSolBalance() {
   const { publicKey } = useWallet();
   const { connection } = useConnection();
-  const localWallet = loadLocalWallet();
+  const { wallet: localWallet, mounted } = useLocalWallet();
 
-  const walletPublicKey = publicKey || (localWallet ? new PublicKey(localWallet.publicKey) : null);
+  const walletPublicKey = publicKey || (mounted && localWallet ? new PublicKey(localWallet.publicKey) : null);
 
   return useQuery({
     queryKey: ["solBalance", walletPublicKey?.toBase58()],
@@ -28,9 +29,9 @@ export function useSolBalance() {
 export function useTokenBalance(mint: PublicKey | null | undefined) {
   const { publicKey } = useWallet();
   const { connection } = useConnection();
-  const localWallet = loadLocalWallet();
+  const { wallet: localWallet, mounted } = useLocalWallet();
 
-  const walletPublicKey = publicKey || (localWallet ? new PublicKey(localWallet.publicKey) : null);
+  const walletPublicKey = publicKey || (mounted && localWallet ? new PublicKey(localWallet.publicKey) : null);
 
   return useQuery({
     queryKey: ["tokenBalance", mint?.toBase58(), walletPublicKey?.toBase58()],
@@ -54,8 +55,8 @@ export function useTokenBalance(mint: PublicKey | null | undefined) {
 
 export function useZTokenBalance(mint: PublicKey | null | undefined) {
   const { publicKey } = useWallet();
-  const localWallet = loadLocalWallet();
-  const walletPublicKey = publicKey || (localWallet ? new PublicKey(localWallet.publicKey) : null);
+  const { wallet: localWallet, mounted } = useLocalWallet();
+  const walletPublicKey = publicKey || (mounted && localWallet ? new PublicKey(localWallet.publicKey) : null);
 
   return useQuery({
     queryKey: ["zTokenBalance", mint?.toBase58(), walletPublicKey?.toBase58()],

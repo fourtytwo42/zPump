@@ -2,39 +2,42 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { loadLocalWallet } from "@/lib/solana/wallet";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLocalWallet } from "@/hooks/useLocalWallet";
 
 export function TransactionList() {
   const { publicKey } = useWallet();
-  const localWallet = loadLocalWallet();
-  const walletAddress = publicKey?.toBase58() || localWallet?.publicKey;
+  const { walletAddress, mounted } = useLocalWallet();
+
+  const finalWalletAddress = publicKey?.toBase58() || (mounted ? walletAddress : null);
 
   const { data: transactions, isLoading } = useQuery({
-    queryKey: ["transactions", walletAddress],
+    queryKey: ["transactions", finalWalletAddress],
     queryFn: async () => {
-      if (!walletAddress) return [];
+      if (!finalWalletAddress) return [];
       
-      // TODO: Query indexer API for transactions
-      const indexerUrl = process.env.NEXT_PUBLIC_INDEXER_URL || "http://127.0.0.1:8082";
       try {
-        const response = await fetch(`${indexerUrl}/transactions/${walletAddress}`);
+        // Use Next.js API route to proxy to indexer
+        const response = await fetch(
+          `/api/indexer?address=${finalWalletAddress}&type=transactions`
+        );
         if (response.ok) {
-          return await response.json();
+          const data = await response.json();
+          return Array.isArray(data) ? data : [];
         }
       } catch (error) {
         console.error("Error fetching transactions:", error);
       }
       return [];
     },
-    enabled: !!walletAddress,
+    enabled: !!finalWalletAddress,
     refetchInterval: 10000,
   });
 
-  if (!walletAddress) {
+  if (!finalWalletAddress) {
     return (
       <Card>
         <CardHeader>

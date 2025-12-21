@@ -40,10 +40,10 @@ module.exports = {
     {
       name: "frontend",
       script: "npm",
-      args: "start",
+      args: "run dev",
       cwd: "/home/hendo420/zpump/web",
       env: {
-        NODE_ENV: "production",
+        NODE_ENV: "development",
         PORT: "3000",
         NEXT_PUBLIC_SOLANA_RPC_URL: "http://127.0.0.1:8899",
         NEXT_PUBLIC_PROOF_SERVICE_URL: "http://127.0.0.1:8080",

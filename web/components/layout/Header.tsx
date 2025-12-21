@@ -2,37 +2,20 @@
 
 import Link from "next/link";
 import { WalletButton } from "@/components/wallet/WalletButton";
-import { Button } from "@/components/ui/button";
+import { Shield } from "lucide-react";
 
 export function Header() {
+
   return (
-    <header className="border-b">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <Link href="/" className="text-2xl font-bold">
-            zPump
-          </Link>
-          <nav className="hidden md:flex gap-4">
-            <Link href="/dashboard">
-              <Button variant="ghost">Dashboard</Button>
-            </Link>
-            <Link href="/dashboard/wrap">
-              <Button variant="ghost">Wrap</Button>
-            </Link>
-            <Link href="/dashboard/send">
-              <Button variant="ghost">Send</Button>
-            </Link>
-            <Link href="/dashboard/history">
-              <Button variant="ghost">History</Button>
-            </Link>
-            <Link href="/dashboard/mint">
-              <Button variant="ghost">Mint</Button>
-            </Link>
-            <Link href="/dashboard/faucet">
-              <Button variant="ghost">Faucet</Button>
-            </Link>
-          </nav>
-        </div>
+        <Link href="/dashboard" className="flex items-center gap-2 group">
+          <div className="relative">
+            <Shield className="h-6 w-6 text-blue-600 group-hover:scale-110 transition-transform" />
+            <div className="absolute inset-0 bg-blue-600/20 rounded-full blur-md group-hover:blur-lg transition-all"></div>
+          </div>
+          <span className="text-2xl font-bold gradient-text-primary">zPump</span>
+        </Link>
         <WalletButton />
       </div>
     </header>

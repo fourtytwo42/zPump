@@ -36,6 +36,11 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
+      // If indexer service is not available, return empty array instead of error
+      // This allows the frontend to work without the indexer service
+      if (response.status === 500 || response.status === 503 || response.status === 0) {
+        return NextResponse.json([]);
+      }
       const error = await response.text();
       return NextResponse.json(
         { error: error || "Indexer request failed" },
@@ -46,10 +51,9 @@ export async function GET(request: NextRequest) {
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message || "Internal server error" },
-      { status: 500 }
-    );
+    // If indexer service is not available, return empty array instead of error
+    // This allows the frontend to work without the indexer service
+    return NextResponse.json([]);
   }
 }
 
