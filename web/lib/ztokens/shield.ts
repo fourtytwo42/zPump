@@ -1,7 +1,16 @@
 import { Connection, PublicKey, Transaction, SystemProgram } from "@solana/web3.js";
-import { Program, AnchorProvider, Wallet } from "@coral-xyz/anchor";
+import { Program, AnchorProvider, Wallet, Idl } from "@coral-xyz/anchor";
 import { POOL_PROGRAM_ID } from "@/lib/solana/programs";
-import idl from "../../app/idl/ptf_pool.json";
+
+// IDL will be loaded dynamically to avoid type issues
+let idlCache: Idl | null = null;
+async function getIdl(): Promise<Idl> {
+  if (!idlCache) {
+    const idlModule = await import("../../app/idl/ptf_pool.json");
+    idlCache = idlModule.default as Idl;
+  }
+  return idlCache;
+}
 
 export interface ShieldParams {
   amount: number;
@@ -15,7 +24,8 @@ export async function buildShieldTransaction(
   params: ShieldParams
 ): Promise<Transaction> {
   const provider = new AnchorProvider(connection, wallet, {});
-  const program = new Program(idl as any, provider);
+  const idl = await getIdl();
+  const program = new Program(idl, provider);
 
   // Generate proof via API
   const proofResponse = await fetch("/api/proof", {
