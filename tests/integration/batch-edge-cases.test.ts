@@ -120,7 +120,7 @@ describe("Batch Operations - Edge Cases", () => {
   
   it("should handle batch with single item", async () => {
     const nullifier = generateTestNullifier();
-    const transferOp = generateTransferOperation(nullifier, TEST_AMOUNTS.SMALL);
+    const transferOp = await generateTransferOperation(nullifier, TEST_AMOUNTS.SMALL);
     const transfers = [{
       proof: Array.from(transferOp.proof),
       publicInputs: Array.from(transferOp.publicInputs),
@@ -152,11 +152,11 @@ describe("Batch Operations - Edge Cases", () => {
     }
   });
   
-  it("should handle batch with maximum items (MAX_BATCH_SIZE = 10)", async () => {
+  it("should handle batch with maximum items (MAX_BATCH_SIZE = 3)", async () => {
     const transfers = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 3; i++) {
       const nullifier = generateTestNullifier();
-      const transferOp = generateTransferOperation(nullifier, TEST_AMOUNTS.SMALL);
+      const transferOp = await generateTransferOperation(nullifier, TEST_AMOUNTS.SMALL);
       transfers.push({
         proof: Array.from(transferOp.proof),
         publicInputs: Array.from(transferOp.publicInputs),

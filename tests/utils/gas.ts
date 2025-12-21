@@ -22,6 +22,13 @@ export async function getComputeUnitsUsed(
   return tx?.meta?.computeUnitsConsumed || 0;
 }
 
+/**
+ * Record gas usage for an operation
+ * Enhanced with detailed reporting per operation type
+ */
+// Import enhanced reporting
+import { recordGasUsageEntry, generateGasReport, printGasReport as printGasReportFromGasReport, isWithinGasLimit, getGasUsagePercentage } from "./gas-report";
+
 export async function recordGasUsage(
   connection: Connection,
   program: string,

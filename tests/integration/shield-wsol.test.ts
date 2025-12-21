@@ -150,7 +150,7 @@ describe("Shield Operations - wSOL Tests", () => {
   
   it("should execute shield with wSOL", async () => {
     const amount = TEST_AMOUNTS.SMALL;
-    const shieldOp = generateShieldOperation(amount);
+    const shieldOp = await generateShieldOperation(amount);
     
     try {
       // Prepare shield first

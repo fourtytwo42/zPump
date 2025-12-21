@@ -1,0 +1,18 @@
+{
+  "name": "zpump-circuits",
+  "version": "0.1.0",
+  "description": "zPump Circom circuits for zero-knowledge proofs",
+  "scripts": {
+    "compile": "bash ../scripts/generate-circuits.sh",
+    "compile:shield": "cd shield && circom circuit.circom --wasm --r1cs",
+    "compile:unshield": "cd unshield && circom circuit.circom --wasm --r1cs",
+    "compile:transfer": "cd transfer && circom circuit.circom --wasm --r1cs"
+  },
+  "devDependencies": {
+    "circom": "^0.5.46",
+    "snarkjs": "^0.7.5"
+  },
+  "dependencies": {
+    "circomlib": "^2.0.5"
+  }
+}

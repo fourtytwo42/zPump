@@ -152,12 +152,15 @@ describe("End-to-End Tests - Complex Scenarios", () => {
             publicInputs: Array.from(transferOp.publicInputs),
           })
           .accounts({
-            poolState: poolAddresses.poolState,
-            commitmentTree: poolAddresses.commitmentTree,
-            nullifierSet: poolAddresses.nullifierSet,
-            verifyingKey: verifyingKey,
-            verifierProgram: VERIFIER_PROGRAM_ID,
+            _phantom: user.publicKey, // Phantom account for raw instruction
           })
+          .remainingAccounts([
+            { pubkey: poolAddresses.poolState, isSigner: false, isWritable: true },
+            { pubkey: poolAddresses.commitmentTree, isSigner: false, isWritable: true },
+            { pubkey: poolAddresses.nullifierSet, isSigner: false, isWritable: true },
+            { pubkey: verifyingKey, isSigner: false, isWritable: false },
+            { pubkey: VERIFIER_PROGRAM_ID, isSigner: false, isWritable: false },
+          ])
           .rpc();
         
         recordInstructionCoverage("ptf_pool", "execute_transfer");
@@ -179,12 +182,15 @@ describe("End-to-End Tests - Complex Scenarios", () => {
           transfers,
         })
         .accounts({
-          poolState: poolAddresses.poolState,
-          commitmentTree: poolAddresses.commitmentTree,
-          nullifierSet: poolAddresses.nullifierSet,
-          verifyingKey: verifyingKey,
-          verifierProgram: VERIFIER_PROGRAM_ID,
+          _phantom: user.publicKey, // Phantom account for raw instruction
         })
+        .remainingAccounts([
+          { pubkey: poolAddresses.poolState, isSigner: false, isWritable: true },
+          { pubkey: poolAddresses.commitmentTree, isSigner: false, isWritable: true },
+          { pubkey: poolAddresses.nullifierSet, isSigner: false, isWritable: true },
+          { pubkey: verifyingKey, isSigner: false, isWritable: false },
+          { pubkey: VERIFIER_PROGRAM_ID, isSigner: false, isWritable: false },
+        ])
         .rpc();
       
       recordInstructionCoverage("ptf_pool", "execute_batch_transfer");
@@ -238,18 +244,31 @@ describe("End-to-End Tests - Complex Scenarios", () => {
       // Step 2: TransferFrom
       const nullifier = generateTestNullifier();
       const transferOp = generateTransferOperation(nullifier, amount);
+      
+      // Derive allowance PDA
+      const { deriveAllowance } = await import("../utils/pool-helpers");
+      const [allowancePDA] = deriveAllowance(
+        user.publicKey,
+        user.publicKey, // Spender is same as owner for this test
+        poolAddresses.poolState,
+      );
+      
       await poolProgram.methods
         .executeTransferFrom({
           proof: Array.from(transferOp.proof),
           publicInputs: Array.from(transferOp.publicInputs),
         })
         .accounts({
-          poolState: poolAddresses.poolState,
-          commitmentTree: poolAddresses.commitmentTree,
-          nullifierSet: poolAddresses.nullifierSet,
-          verifyingKey: verifyingKey,
-          verifierProgram: VERIFIER_PROGRAM_ID,
+          _phantom: user.publicKey, // Phantom account for raw instruction
         })
+        .remainingAccounts([
+          { pubkey: poolAddresses.poolState, isSigner: false, isWritable: true },
+          { pubkey: poolAddresses.commitmentTree, isSigner: false, isWritable: true },
+          { pubkey: poolAddresses.nullifierSet, isSigner: false, isWritable: true },
+          { pubkey: allowancePDA, isSigner: false, isWritable: true },
+          { pubkey: verifyingKey, isSigner: false, isWritable: false },
+          { pubkey: VERIFIER_PROGRAM_ID, isSigner: false, isWritable: false },
+        ])
         .rpc();
       
       recordInstructionCoverage("ptf_pool", "execute_transfer_from");
@@ -270,12 +289,16 @@ describe("End-to-End Tests - Complex Scenarios", () => {
           transfers,
         })
         .accounts({
-          poolState: poolAddresses.poolState,
-          commitmentTree: poolAddresses.commitmentTree,
-          nullifierSet: poolAddresses.nullifierSet,
-          verifyingKey: verifyingKey,
-          verifierProgram: VERIFIER_PROGRAM_ID,
+          _phantom: user.publicKey, // Phantom account for raw instruction
         })
+        .remainingAccounts([
+          { pubkey: poolAddresses.poolState, isSigner: false, isWritable: true },
+          { pubkey: poolAddresses.commitmentTree, isSigner: false, isWritable: true },
+          { pubkey: poolAddresses.nullifierSet, isSigner: false, isWritable: true },
+          { pubkey: allowancePDA, isSigner: false, isWritable: true },
+          { pubkey: verifyingKey, isSigner: false, isWritable: false },
+          { pubkey: VERIFIER_PROGRAM_ID, isSigner: false, isWritable: false },
+        ])
         .rpc();
       
       recordInstructionCoverage("ptf_pool", "execute_batch_transfer_from");

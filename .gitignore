@@ -86,3 +86,4 @@ test-ledger/
 *.so.d
 .DS_Store
 
+.env.proof-service

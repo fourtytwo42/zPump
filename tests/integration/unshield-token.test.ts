@@ -128,7 +128,7 @@ describe("Unshield Operations - Token Tests", () => {
   it("should complete full unshield flow with token (prepare → verify → update → withdraw)", async () => {
     const amount = TEST_AMOUNTS.SMALL;
     const nullifier = generateTestNullifier();
-    const unshieldOp = generateUnshieldOperation(amount, recipient.publicKey);
+    const unshieldOp = await generateUnshieldOperation(amount, recipient.publicKey);
     
     try {
       // Step 1: Prepare unshield
@@ -214,6 +214,7 @@ describe("Unshield Operations - Token Tests", () => {
     const amount = TEST_AMOUNTS.SMALL;
     const nullifier = generateTestNullifier();
     const unshieldData = prepareUnshieldData(nullifier, amount, recipient.publicKey);
+    // Note: unshieldData doesn't need await, but generateUnshieldOperation would
     
     // Test Step 1: Prepare unshield
     try {

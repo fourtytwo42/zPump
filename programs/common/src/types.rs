@@ -52,5 +52,9 @@ pub const MAX_PUBLIC_INPUTS_SIZE: usize = 512;
 pub const MAX_SHIELD_AMOUNT: u64 = u64::MAX;
 pub const MAX_UNSHIELD_AMOUNT: u64 = u64::MAX;
 pub const MAX_TRANSFER_AMOUNT: u64 = u64::MAX;
-pub const MAX_BATCH_SIZE: usize = 10;
+// Reduced from 10 to 3 to ensure batch operations fit within 1.4M CU
+// With real Groth16 verification: ~200,000-400,000 CU per proof
+// 3 proofs: ~600,000-1,200,000 CU (within 1.4M limit)
+// 10 proofs: ~2,000,000-4,000,000 CU (exceeds limit)
+pub const MAX_BATCH_SIZE: usize = 3; // Conservative limit
 

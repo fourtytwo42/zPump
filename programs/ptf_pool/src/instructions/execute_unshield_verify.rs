@@ -25,30 +25,83 @@ pub fn execute_unshield_verify(
         PoolError::InvalidOperationStatus
     );
     
-    // Verify proof via CPI to verifier program
-    // Extract proof and public inputs from operation data
-    // This is simplified - full implementation would parse the operation data properly
-    // For now, we extract from operation data assuming it's structured as:
-    // [0..192]: proof, [192..]: public_inputs
-    let proof = if operation.data.len() >= 192 {
-        operation.data[0..192].to_vec()
-    } else {
-        // Fallback: create placeholder proof if data is too short
-        vec![0u8; 192]
-    };
-    let public_inputs = if operation.data.len() > 192 {
-        operation.data[192..].to_vec()
-    } else {
-        operation.data.clone()
+    // Verify proof via CPI to verifier program using attestation
+    // Operation data format: [proof (256 bytes)][attestation (169 bytes)][public_inputs (variable)]
+    // Attestation structure: proof_hash (32) + public_inputs_hash (32) + verifying_key_hash (32) + 
+    //                         is_valid (1) + timestamp (8) + signature (64) = 169 bytes
+    
+    require!(
+        operation.data.len() >= 256 + 169,
+        PoolError::InvalidOperationStatus // Use as generic error for now
+    );
+    
+    // Extract proof (256 bytes)
+    let proof = operation.data[0..256].to_vec();
+    
+    // Extract attestation (169 bytes) - manually parse since it's a fixed-size struct
+    let attestation_bytes = &operation.data[256..256 + 169];
+    require!(
+        attestation_bytes.len() == 169,
+        PoolError::InvalidOperationStatus
+    );
+    
+    // Parse attestation: proof_hash (32) + public_inputs_hash (32) + verifying_key_hash (32) + 
+    //                    is_valid (1) + timestamp (8) + signature (64) = 169 bytes
+    let mut offset = 0;
+    let mut proof_hash = [0u8; 32];
+    proof_hash.copy_from_slice(&attestation_bytes[offset..offset + 32]);
+    offset += 32;
+    
+    let mut public_inputs_hash = [0u8; 32];
+    public_inputs_hash.copy_from_slice(&attestation_bytes[offset..offset + 32]);
+    offset += 32;
+    
+    let mut verifying_key_hash = [0u8; 32];
+    verifying_key_hash.copy_from_slice(&attestation_bytes[offset..offset + 32]);
+    offset += 32;
+    
+    let is_valid = attestation_bytes[offset] != 0;
+    offset += 1;
+    
+    let timestamp = i64::from_le_bytes([
+        attestation_bytes[offset],
+        attestation_bytes[offset + 1],
+        attestation_bytes[offset + 2],
+        attestation_bytes[offset + 3],
+        attestation_bytes[offset + 4],
+        attestation_bytes[offset + 5],
+        attestation_bytes[offset + 6],
+        attestation_bytes[offset + 7],
+    ]);
+    offset += 8;
+    
+    let mut signature = [0u8; 64];
+    signature.copy_from_slice(&attestation_bytes[offset..offset + 64]);
+    
+    let attestation = ptf_verifier_groth16::instructions::verify_with_attestation::VerificationAttestation {
+        proof_hash,
+        public_inputs_hash,
+        verifying_key_hash,
+        is_valid,
+        timestamp,
+        signature,
     };
     
-    // CPI to verifier program
+    // Extract public inputs (remaining bytes)
+    let public_inputs = if operation.data.len() > 256 + 169 {
+        operation.data[256 + 169..].to_vec()
+    } else {
+        vec![0u8; 32] // Default public input
+    };
+    
+    // CPI to verifier program with attestation
     let cpi_program = ctx.accounts.verifier_program.to_account_info();
-    let cpi_accounts = ptf_verifier_groth16::cpi::accounts::VerifyGroth16 {
+    let cpi_accounts = ptf_verifier_groth16::cpi::accounts::VerifyWithAttestation {
         verifying_key: ctx.accounts.verifying_key.to_account_info(),
+        external_verifier: ctx.accounts.external_verifier.to_account_info(),
     };
     let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
-    ptf_verifier_groth16::cpi::verify_groth16(cpi_ctx, proof, public_inputs)?;
+    ptf_verifier_groth16::cpi::verify_with_attestation(cpi_ctx, proof, public_inputs, attestation)?;
     
     // Update operation status to Verified
     let mut vault_data = ctx.accounts.proof_vault.try_borrow_mut_data()?;

@@ -119,7 +119,7 @@ describe("Unshield Operations - State Machine Tests", () => {
   it("should enforce state transitions (Pending → Verified → Updated → Withdrawn)", async () => {
     const amount = TEST_AMOUNTS.SMALL;
     const nullifier = generateTestNullifier();
-    const unshieldOp = generateUnshieldOperation(amount, recipient.publicKey);
+    const unshieldOp = await generateUnshieldOperation(amount, recipient.publicKey);
     
     try {
       // Step 1: Prepare (creates Pending state)
@@ -194,7 +194,7 @@ describe("Unshield Operations - State Machine Tests", () => {
     // Test that verify fails if operation is not in Pending state
     const amount = TEST_AMOUNTS.SMALL;
     const nullifier = generateTestNullifier();
-    const unshieldOp = generateUnshieldOperation(amount, recipient.publicKey);
+    const unshieldOp = await generateUnshieldOperation(amount, recipient.publicKey);
     
     try {
       // Try to verify without preparing first
@@ -224,7 +224,7 @@ describe("Unshield Operations - State Machine Tests", () => {
     // Test that update fails if operation is not in Verified state
     const amount = TEST_AMOUNTS.SMALL;
     const nullifier = generateTestNullifier();
-    const unshieldOp = generateUnshieldOperation(amount, recipient.publicKey);
+    const unshieldOp = await generateUnshieldOperation(amount, recipient.publicKey);
     
     try {
       // Try to update without verifying first
@@ -255,7 +255,7 @@ describe("Unshield Operations - State Machine Tests", () => {
     // Test that withdraw fails if operation is not in Updated state
     const amount = TEST_AMOUNTS.SMALL;
     const nullifier = generateTestNullifier();
-    const unshieldOp = generateUnshieldOperation(amount, recipient.publicKey);
+    const unshieldOp = await generateUnshieldOperation(amount, recipient.publicKey);
     
     try {
       // Try to withdraw without updating first

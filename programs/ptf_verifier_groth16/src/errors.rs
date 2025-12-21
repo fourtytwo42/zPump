@@ -18,5 +18,7 @@ pub enum VerifierError {
     InvalidAuthority = 6006,
     #[msg("Key already revoked")]
     AlreadyRevoked = 6012,
+    #[msg("Invalid verifying key format")]
+    InvalidVerifyingKey = 6013,
 }
 

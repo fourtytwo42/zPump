@@ -115,7 +115,7 @@ describe("Comprehensive Edge Cases - All Operations", () => {
   
   // Shield Edge Cases
   it("should reject shield with zero amount", async () => {
-    const shieldOp = generateShieldOperation(0);
+    const shieldOp = await generateShieldOperation(0);
     
     try {
       await poolProgram.methods
@@ -141,7 +141,7 @@ describe("Comprehensive Edge Cases - All Operations", () => {
   
   it("should reject shield with maximum amount exceeded", async () => {
     const maxAmount = Number.MAX_SAFE_INTEGER;
-    const shieldOp = generateShieldOperation(maxAmount);
+    const shieldOp = await generateShieldOperation(maxAmount);
     
     try {
       await poolProgram.methods
@@ -275,7 +275,7 @@ describe("Comprehensive Edge Cases - All Operations", () => {
   // Batch Transfer Edge Cases
   it("should reject batch transfer with duplicate nullifiers", async () => {
     const nullifier = generateTestNullifier();
-    const transferOp = generateTransferOperation(nullifier, TEST_AMOUNTS.SMALL);
+    const transferOp = await generateTransferOperation(nullifier, TEST_AMOUNTS.SMALL);
     
     // Create batch with same nullifier twice
     const transfers = [
@@ -347,7 +347,7 @@ describe("Comprehensive Edge Cases - All Operations", () => {
     const amount = TEST_AMOUNTS.SMALL;
     
     for (let i = 0; i < 3; i++) {
-      const shieldOp = generateShieldOperation(amount);
+      const shieldOp = await generateShieldOperation(amount);
       try {
         await poolProgram.methods
           .prepareShield({
@@ -374,7 +374,7 @@ describe("Comprehensive Edge Cases - All Operations", () => {
   // Cross-Operation Edge Cases
   it("should handle shield then immediate transfer", async () => {
     const amount = TEST_AMOUNTS.SMALL;
-    const shieldOp = generateShieldOperation(amount);
+      const shieldOp = await generateShieldOperation(amount);
     
     try {
       // Prepare shield
@@ -392,7 +392,7 @@ describe("Comprehensive Edge Cases - All Operations", () => {
       
       // Immediately try transfer
       const nullifier = generateTestNullifier();
-      const transferOp = generateTransferOperation(nullifier, amount);
+      const transferOp = await generateTransferOperation(nullifier, amount);
       
       await poolProgram.methods
         .executeTransfer({
@@ -425,7 +425,7 @@ describe("Comprehensive Edge Cases - All Operations", () => {
   // wSOL Specific Edge Cases
   it("should handle wSOL edge cases", async () => {
     const amount = TEST_AMOUNTS.SMALL;
-    const shieldOp = generateShieldOperation(amount);
+      const shieldOp = await generateShieldOperation(amount);
     
     try {
       await poolProgram.methods

@@ -23,9 +23,29 @@ pub fn execute_unshield_update(
         PoolError::InvalidOperationStatus
     );
     
-    // Extract nullifier from operation data (first 32 bytes)
-    let nullifier: [u8; 32] = operation.data[0..32].try_into()
-        .map_err(|_| PoolError::InvalidNullifier)?;
+    // Extract nullifier from operation data
+    // Operation data format: [proof (256)][attestation (169)][public_inputs (variable)]
+    // But for unshield, we also need the original nullifier
+    // The nullifier is stored in the original prepare_unshield data, which may be at the start
+    // OR we need to extract it from public_inputs
+    // For now, try to extract from first 32 bytes (backward compatibility)
+    // In production, nullifier should be extracted from public_inputs
+    let nullifier: [u8; 32] = if operation.data.len() >= 32 {
+        // If data has proof+attestation format, nullifier is in public_inputs
+        // Otherwise, it's at the start
+        if operation.data.len() >= 256 + 169 {
+            // Has proof + attestation format, nullifier is in public_inputs (after 256+169)
+            // For now, use a placeholder - in production, parse from public_inputs properly
+            operation.data[256 + 169..256 + 169 + 32].try_into()
+                .map_err(|_| PoolError::InvalidNullifier)?
+        } else {
+            // Old format: nullifier at start
+            operation.data[0..32].try_into()
+                .map_err(|_| PoolError::InvalidNullifier)?
+        }
+    } else {
+        return Err(PoolError::InvalidNullifier.into());
+    };
     
     // Update tree (simplified - full implementation would update Merkle tree properly)
     let tree = &mut ctx.accounts.commitment_tree;

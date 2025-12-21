@@ -88,7 +88,7 @@ describe("Batch Transfer Operations - wSOL Tests", () => {
     const transfers = [];
     for (let i = 0; i < 3; i++) {
       const nullifier = generateTestNullifier();
-      const transferOp = generateTransferOperation(nullifier, TEST_AMOUNTS.SMALL);
+      const transferOp = await generateTransferOperation(nullifier, TEST_AMOUNTS.SMALL);
       transfers.push({
         proof: Array.from(transferOp.proof),
         publicInputs: Array.from(transferOp.publicInputs),

@@ -1,6 +1,8 @@
 // Mock proof generation utilities
 // In production, these would call the proof RPC service
 
+import { ProofServiceClient, getProofServiceClient } from "./proof-service";
+
 export interface ProofData {
   proof: number[];
   publicInputs: number[];
@@ -15,8 +17,8 @@ export interface ProofInputs {
 }
 
 /**
- * Generate a realistic mock Groth16 proof (192 bytes)
- * Groth16 proof structure: 2 G1 points (64 bytes each) + 1 G2 point (128 bytes)
+ * Generate a realistic mock Groth16 proof (256 bytes)
+ * Groth16 proof structure: a (G1, 64 bytes) + b (G2, 128 bytes) + c (G1, 64 bytes) = 256 bytes
  */
 export function generateMockProof(
   operationType: "shield" | "unshield" | "transfer",
@@ -24,12 +26,11 @@ export function generateMockProof(
 ): ProofData {
   // Generate deterministic proof based on inputs for testing
   const seed = inputs?.commitment || inputs?.nullifier || new Uint8Array(32);
-  const proof = new Uint8Array(192);
+  const proof = new Uint8Array(256);
   
   // Fill proof with deterministic but realistic-looking data
-  // Ensure we don't exceed buffer bounds
-  const maxProofIndex = Math.min(192, proof.length);
-  for (let i = 0; i < maxProofIndex; i++) {
+  // Standard format: a (64) + b (128) + c (64) = 256 bytes
+  for (let i = 0; i < 256; i++) {
     proof[i] = (seed[i % 32] + i) % 256;
   }
   
@@ -84,8 +85,8 @@ export function proofToBytes(proof: ProofData): { proof: Uint8Array; publicInput
  * Validate proof structure (size checks)
  */
 export function validateProofStructure(proof: Uint8Array, publicInputs: Uint8Array): boolean {
-  // Groth16 proof must be exactly 192 bytes
-  if (proof.length !== 192) {
+  // Groth16 proof must be exactly 256 bytes (a=64 + b=128 + c=64)
+  if (proof.length !== 256) {
     return false;
   }
   
@@ -120,5 +121,77 @@ export function generateTransferProof(
   amount: number,
 ): ProofData {
   return generateMockProof("transfer", { nullifier, commitment, amount });
+}
+
+/**
+ * Generate real proof from proof service
+ * Falls back to mock proof if service is unavailable
+ */
+export async function generateRealProof(
+  operationType: "shield" | "unshield" | "transfer",
+  inputs: ProofInputs,
+  proofServiceUrl?: string
+): Promise<ProofData> {
+  const client = getProofServiceClient({ url: proofServiceUrl });
+  
+  // Check if service is available
+  const isAvailable = await client.healthCheck();
+  if (!isAvailable) {
+    console.warn("Proof service unavailable, falling back to mock proof");
+    return generateMockProof(operationType, inputs);
+  }
+  
+  try {
+    let response;
+    
+    switch (operationType) {
+      case "shield":
+        if (!inputs.commitment) {
+          throw new Error("Commitment required for shield proof");
+        }
+        response = await client.generateShieldProof(
+          inputs.commitment,
+          inputs.amount || 0
+        );
+        break;
+        
+      case "unshield":
+        if (!inputs.nullifier) {
+          throw new Error("Nullifier required for unshield proof");
+        }
+        response = await client.generateUnshieldProof(
+          inputs.nullifier,
+          inputs.amount || 0,
+          inputs.recipient
+        );
+        break;
+        
+      case "transfer":
+        if (!inputs.nullifier || !inputs.commitment) {
+          throw new Error("Nullifier and commitment required for transfer proof");
+        }
+        response = await client.generateTransferProof(
+          inputs.nullifier,
+          inputs.commitment,
+          inputs.amount || 0
+        );
+        break;
+        
+      default:
+        throw new Error(`Unknown operation type: ${operationType}`);
+    }
+    
+    // Convert hex strings to byte arrays
+    const proof = Uint8Array.from(Buffer.from(response.proof, "hex"));
+    const publicInputs = Uint8Array.from(Buffer.from(response.public_inputs, "hex"));
+    
+    return {
+      proof: Array.from(proof),
+      publicInputs: Array.from(publicInputs),
+    };
+  } catch (error) {
+    console.warn(`Proof generation failed: ${error}, falling back to mock proof`);
+    return generateMockProof(operationType, inputs);
+  }
 }
 

@@ -106,7 +106,7 @@ describe("TransferFrom Operations - Token Tests", () => {
   it("should execute transferFrom with token", async () => {
     const amount = TEST_AMOUNTS.SMALL;
     const nullifier = generateTestNullifier();
-    const transferOp = generateTransferOperation(nullifier, amount);
+    const transferOp = await generateTransferOperation(nullifier, amount);
     
     try {
       const tx = await poolProgram.methods

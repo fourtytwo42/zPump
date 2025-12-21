@@ -6,6 +6,8 @@ members = [
     "programs/ptf_verifier_groth16",
     "programs/ptf_dex",
     "programs/common",
+    "services/proof-service",
+    "services/external-verifier",
 ]
 resolver = "2"
 

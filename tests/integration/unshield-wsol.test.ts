@@ -124,7 +124,7 @@ describe("Unshield Operations - wSOL Tests", () => {
   it("should complete full unshield flow with wSOL", async () => {
     const amount = TEST_AMOUNTS.SMALL;
     const nullifier = generateTestNullifier();
-    const unshieldOp = generateUnshieldOperation(amount, recipient.publicKey);
+    const unshieldOp = await generateUnshieldOperation(amount, recipient.publicKey);
     
     try {
       // Step 1: Prepare unshield

@@ -1,0 +1,25 @@
+{
+  "address": "3UWzz6ZsPxnbCjJ3MfBrwpbMC54jPXHfMZHxhytVVYPC",
+  "metadata": {
+    "name": "ptf_dex",
+    "version": "0.1.0",
+    "spec": "0.1.0"
+  },
+  "instructions": [
+    {
+      "name": "initialize",
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [],
+      "args": []
+    }
+  ]
+}

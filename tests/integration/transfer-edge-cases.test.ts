@@ -128,7 +128,7 @@ describe("Transfer Operations - Edge Cases", () => {
     // Test that duplicate nullifiers are rejected
     const amount = TEST_AMOUNTS.SMALL;
     const nullifier = generateTestNullifier();
-    const transferOp = generateTransferOperation(nullifier, amount);
+    const transferOp = await generateTransferOperation(nullifier, amount);
     
     try {
       // First transfer should succeed (or fail gracefully)

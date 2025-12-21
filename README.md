@@ -41,6 +41,21 @@ The system consists of 5 Anchor programs:
 - Node.js (v18+)
 - npm (v10.8.2+)
 
+### Optional: Proof Generation Service
+
+For production-ready testing with real Groth16 proofs:
+
+```bash
+# Start proof service (in separate terminal)
+cd services/proof-service
+cargo run
+
+# Set environment variable for tests
+export PROOF_SERVICE_URL=http://127.0.0.1:8080
+```
+
+See [docs/PROOF_SERVICE.md](./docs/PROOF_SERVICE.md) for details.
+
 ## Getting Started
 
 ### 1. Install Dependencies
@@ -204,6 +219,8 @@ npm run reset-env
 
 ## Documentation
 
+### Project Documentation
+
 See `.cursor/project-docs/` for detailed documentation:
 
 - [Project Overview](.cursor/project-docs/01-project-overview.md)
@@ -213,6 +230,13 @@ See `.cursor/project-docs/` for detailed documentation:
 - [Testing Guide](.cursor/project-docs/05-testing-guide.md)
 - [Troubleshooting Guide](.cursor/project-docs/06-troubleshooting-guide.md)
 - [Architecture Deep Dive](.cursor/project-docs/07-architecture-deep-dive.md)
+
+### Production Readiness
+
+- [Proof Service Setup](./docs/PROOF_SERVICE.md) - Proof generation service
+- [Groth16 Verification](./docs/GROTH16_VERIFICATION.md) - On-chain verification implementation
+- [Circuit Setup](./docs/CIRCUIT_SETUP.md) - Circuit generation guide
+- [Production Readiness Analysis](./PRODUCTION_READINESS_ANALYSIS.md) - Current status and requirements
 
 ## License
 

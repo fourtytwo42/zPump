@@ -7,6 +7,9 @@ pub struct VerifyingKeyAccount {
     pub key_data: Vec<u8>,
     pub revoked: bool,
     pub authority: Pubkey,
+    // Future: Add external verifier support
+    // pub external_verifier_enabled: bool,
+    // pub external_verifier_pubkey: Option<Pubkey>,
 }
 
 impl VerifyingKeyAccount {

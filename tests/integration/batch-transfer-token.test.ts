@@ -96,7 +96,7 @@ describe("Batch Transfer Operations - Token Tests", () => {
     const transfers = [];
     for (let i = 0; i < 3; i++) {
       const nullifier = generateTestNullifier();
-      const transferOp = generateTransferOperation(nullifier, TEST_AMOUNTS.SMALL);
+      const transferOp = await generateTransferOperation(nullifier, TEST_AMOUNTS.SMALL);
       transfers.push({
         proof: Array.from(transferOp.proof),
         publicInputs: Array.from(transferOp.publicInputs),
@@ -133,11 +133,11 @@ describe("Batch Transfer Operations - Token Tests", () => {
   });
   
   it("should fail with batch size exceeding MAX_BATCH_SIZE", async () => {
-    // MAX_BATCH_SIZE is 10, so create 11 transfers
+    // MAX_BATCH_SIZE is 3, so create 4 transfers
     const transfers = [];
-    for (let i = 0; i < 11; i++) {
+    for (let i = 0; i < 4; i++) {
       const nullifier = generateTestNullifier();
-      const transferOp = generateTransferOperation(nullifier, TEST_AMOUNTS.SMALL);
+      const transferOp = await generateTransferOperation(nullifier, TEST_AMOUNTS.SMALL);
       transfers.push({
         proof: Array.from(transferOp.proof),
         publicInputs: Array.from(transferOp.publicInputs),

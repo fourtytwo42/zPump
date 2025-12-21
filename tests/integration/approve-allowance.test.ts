@@ -160,7 +160,7 @@ describe("Allowance Operations", () => {
     // Test that transfer_from works with approved allowance
     const amount = TEST_AMOUNTS.SMALL;
     const nullifier = generateTestNullifier();
-    const transferOp = generateTransferOperation(nullifier, amount);
+    const transferOp = await generateTransferOperation(nullifier, amount);
     
     const [allowancePDA] = deriveAllowance(
       owner.publicKey,

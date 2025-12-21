@@ -95,7 +95,7 @@ describe("Allowance Operations - Edge Cases", () => {
     // Test that transferFrom fails if allowance is insufficient
     const amount = TEST_AMOUNTS.LARGE; // Large amount that exceeds allowance
     const nullifier = generateTestNullifier();
-    const transferOp = generateTransferOperation(nullifier, amount);
+    const transferOp = await generateTransferOperation(nullifier, amount);
     
     const [allowancePDA] = deriveAllowance(
       owner.publicKey,
@@ -140,7 +140,7 @@ describe("Allowance Operations - Edge Cases", () => {
     // Test that transferFrom fails with zero allowance
     const amount = TEST_AMOUNTS.SMALL;
     const nullifier = generateTestNullifier();
-    const transferOp = generateTransferOperation(nullifier, amount);
+    const transferOp = await generateTransferOperation(nullifier, amount);
     
     const [allowancePDA] = deriveAllowance(
       owner.publicKey,

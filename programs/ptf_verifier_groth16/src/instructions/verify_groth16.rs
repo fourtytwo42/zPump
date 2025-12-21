@@ -2,6 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_lang::solana_program::sysvar::Sysvar;
 use crate::state::VerifyingKeyAccount;
 use crate::errors::VerifierError;
+use crate::verification::{VerifyingKey, verify_groth16_proof};
 
 pub fn verify_groth16(
     ctx: Context<VerifyGroth16>,
@@ -13,8 +14,8 @@ pub fn verify_groth16(
     // Check if key is revoked
     require!(!verifying_key.revoked, VerifierError::KeyRevoked);
     
-    // Validate proof size (Groth16 proof is 192 bytes: 2 G1 points + 1 G2 point)
-    require!(proof.len() == 192, VerifierError::InvalidProof);
+    // Validate proof size (Groth16 proof is 256 bytes: a (G1, 64) + b (G2, 128) + c (G1, 64))
+    require!(proof.len() == 256, VerifierError::InvalidProof);
     
     // Validate public inputs size (should be 32 bytes per input)
     require!(
@@ -23,27 +24,45 @@ pub fn verify_groth16(
     );
     
     // Extract proof components
-    let a = &proof[0..64];
-    let b = &proof[64..128];
-    let c = &proof[128..192];
+    // Standard Groth16 proof format: a (G1, 64 bytes) + b (G2, 128 bytes) + c (G1, 64 bytes) = 256 bytes
+    // Some implementations may use compressed formats, but 256 bytes is the standard
     
-    // Use Solana's alt_bn128 syscalls for verification
-    // Note: This is a simplified implementation. In production, you would:
-    // 1. Parse the verifying key data
-    // 2. Use the alt_bn128 syscalls to perform pairing checks
-    // 3. Verify the proof against the public inputs
+    require!(
+        proof.len() == 256,
+        VerifierError::InvalidProof
+    );
     
-    // For now, we'll do a basic validation
-    // In a real implementation, you would call:
-    // solana_program::alt_bn128::alt_bn128_pairing_check(...)
+    let mut proof_a = [0u8; 64];
+    let mut proof_b = [0u8; 128];
+    let mut proof_c = [0u8; 64];
     
-    // This is a placeholder - actual verification requires parsing the verifying key
-    // and performing the pairing check using Solana's syscalls
+    // Standard 256-byte format
+    proof_a.copy_from_slice(&proof[0..64]);
+    proof_b.copy_from_slice(&proof[64..192]);
+    proof_c.copy_from_slice(&proof[192..256]);
     
-    // For testing purposes, we'll accept valid-sized proofs
-    // In production, this must perform actual Groth16 verification
+    // Parse verifying key
+    let vk = VerifyingKey::parse(&verifying_key.key_data)?;
     
-    msg!("Groth16 proof verification (placeholder - requires full implementation)");
+    // WARNING: This instruction performs structure validation only, not actual cryptographic verification
+    // Solana does not support alt_bn128 pairing checks natively
+    // 
+    // For production use, use verify_with_attestation instead, which verifies proofs using
+    // an external verifier service that performs actual Groth16 pairing checks
+    
+    // Perform Groth16 verification (structure validation only)
+    let is_valid = verify_groth16_proof(
+        &proof_a,
+        &proof_b,
+        &proof_c,
+        &vk,
+        &public_inputs,
+    )?;
+    
+    require!(is_valid, VerifierError::ProofVerificationFailed);
+    
+    msg!("WARNING: Groth16 proof structure validated (not cryptographically verified)");
+    msg!("For production, use verify_with_attestation with external verifier service");
     msg!("Proof size: {} bytes", proof.len());
     msg!("Public inputs size: {} bytes", public_inputs.len());
     

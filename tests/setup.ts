@@ -1,9 +1,20 @@
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import { AnchorProvider, Wallet } from "@coral-xyz/anchor";
 import * as anchor from "@coral-xyz/anchor";
+import { initializeProofService, getProofServiceUrl } from "./setup/proof-service";
 
 export const RPC_URL = process.env.ANCHOR_PROVIDER_URL || "http://127.0.0.1:8899";
 export const COMMITMENT = "confirmed";
+
+// Initialize proof service on setup
+let proofServiceInitialized = false;
+export async function initializeTestEnvironment(): Promise<void> {
+  if (!proofServiceInitialized) {
+    const proofServiceUrl = getProofServiceUrl();
+    await initializeProofService(proofServiceUrl);
+    proofServiceInitialized = true;
+  }
+}
 
 let connection: Connection | null = null;
 let provider: AnchorProvider | null = null;

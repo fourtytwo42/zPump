@@ -3,98 +3,98 @@
     {
       "name": "prepare_shield",
       "covered": true,
-      "testCount": 20
+      "testCount": 111
     },
     {
       "name": "execute_transfer",
       "covered": true,
-      "testCount": 14
+      "testCount": 78
     },
     {
       "name": "execute_batch_transfer",
       "covered": true,
-      "testCount": 9
+      "testCount": 51
     },
     {
       "name": "prepare_unshield",
       "covered": true,
-      "testCount": 11
+      "testCount": 63
     },
     {
       "name": "approve_allowance",
       "covered": true,
-      "testCount": 5
+      "testCount": 32
     },
     {
       "name": "execute_transfer_from",
       "covered": true,
-      "testCount": 7
+      "testCount": 39
     },
     {
       "name": "execute_batch_transfer_from",
       "covered": true,
-      "testCount": 3
+      "testCount": 18
     },
     {
       "name": "execute_unshield_verify",
       "covered": true,
-      "testCount": 7
+      "testCount": 43
     },
     {
       "name": "execute_unshield_update",
       "covered": true,
-      "testCount": 7
+      "testCount": 43
     },
     {
       "name": "execute_unshield_withdraw",
       "covered": true,
-      "testCount": 7
+      "testCount": 43
     },
     {
       "name": "execute_shield_v2",
       "covered": true,
-      "testCount": 2
+      "testCount": 13
     }
   ],
   "ptf_factory": [
     {
       "name": "initialize_factory",
       "covered": true,
-      "testCount": 1
+      "testCount": 5
     },
     {
       "name": "register_mint",
       "covered": true,
-      "testCount": 1
+      "testCount": 5
     },
     {
       "name": "create_verifying_key",
       "covered": true,
-      "testCount": 1
+      "testCount": 5
     }
   ],
   "ptf_vault": [
     {
       "name": "deposit",
       "covered": true,
-      "testCount": 1
+      "testCount": 5
     },
     {
       "name": "withdraw",
       "covered": true,
-      "testCount": 1
+      "testCount": 5
     }
   ],
   "ptf_verifier_groth16": [
     {
       "name": "initialize_verifying_key",
       "covered": true,
-      "testCount": 1
+      "testCount": 5
     },
     {
       "name": "verify_groth16",
       "covered": true,
-      "testCount": 3
+      "testCount": 15
     }
   ]
 }

@@ -143,3 +143,31 @@ Ok(()) // Accepts all proofs without verification!
 
 **Risk Level**: **HIGH** - Deploying without real verification would allow invalid proofs to be accepted, breaking the privacy guarantees of the system.
 
+## Implementation Status
+
+### Completed
+
+- ✅ Proof generation service infrastructure (Rust REST API)
+- ✅ Proof service client integration for tests
+- ✅ Groth16 verification structure (parsing, validation)
+- ✅ MAX_BATCH_SIZE reduced from 10 to 3
+- ✅ Test utilities updated to support real proofs
+- ✅ Production test suite structure
+- ✅ Documentation (PROOF_SERVICE.md, GROTH16_VERIFICATION.md, CIRCUIT_SETUP.md)
+
+### In Progress / Needs Completion
+
+- ⚠️ Actual Groth16 pairing checks using Solana's alt_bn128 syscalls
+- ⚠️ Circuit file generation (circuits need to be created)
+- ⚠️ Verifying key format conversion for Solana
+- ⚠️ Proof format handling (192 vs 256 byte format needs clarification)
+- ⚠️ Real proof generation integration (currently uses placeholders)
+
+### Next Steps
+
+1. **Complete Groth16 Verification**: Implement actual pairing checks with Solana's alt_bn128 API
+2. **Generate Circuit Files**: Create actual Circom circuits and generate .wasm/.zkey files
+3. **Test with Real Proofs**: Run full test suite with real proofs and measure gas costs
+4. **Validate Gas Limits**: Ensure all operations fit within 1.4M CU with real verification
+5. **Production Testing**: Complete production test suite with real proofs
+

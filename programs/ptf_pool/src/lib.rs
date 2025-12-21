@@ -33,6 +33,14 @@ pub mod ptf_pool {
         instructions::prepare_unshield(ctx, args)
     }
 
+    pub fn update_operation_data(
+        ctx: Context<UpdateOperationData>,
+        operation_id: [u8; 32],
+        operation_data: Vec<u8>,
+    ) -> Result<()> {
+        instructions::update_operation_data(ctx, operation_id, operation_data)
+    }
+
     pub fn execute_unshield_verify(ctx: Context<ExecuteUnshieldVerify>, operation_id: [u8; 32]) -> Result<()> {
         instructions::execute_unshield_verify(ctx, operation_id)
     }
@@ -141,6 +149,8 @@ pub struct ExecuteUnshieldVerify<'info> {
     pub proof_vault: UncheckedAccount<'info>,
     /// CHECK: Verifying key account
     pub verifying_key: UncheckedAccount<'info>,
+    /// CHECK: External verifier public key (must sign transaction)
+    pub external_verifier: Signer<'info>,
     pub verifier_program: Program<'info, ptf_verifier_groth16::program::PtfVerifierGroth16>,
 }
 

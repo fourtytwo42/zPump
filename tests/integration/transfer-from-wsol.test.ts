@@ -98,7 +98,7 @@ describe("TransferFrom Operations - wSOL Tests", () => {
   it("should execute transferFrom with wSOL", async () => {
     const amount = TEST_AMOUNTS.SMALL;
     const nullifier = generateTestNullifier();
-    const transferOp = generateTransferOperation(nullifier, amount);
+    const transferOp = await generateTransferOperation(nullifier, amount);
     
     try {
       const tx = await poolProgram.methods
