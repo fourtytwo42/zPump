@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 interface BalanceCardProps {
   title: string;
-  mint?: PublicKey | null;
+  mint?: PublicKey | null | undefined;
   type?: "sol" | "token" | "ztoken";
 }
 

@@ -25,7 +25,7 @@ export function useSolBalance() {
   });
 }
 
-export function useTokenBalance(mint: PublicKey | null) {
+export function useTokenBalance(mint: PublicKey | null | undefined) {
   const { publicKey } = useWallet();
   const { connection } = useConnection();
   const localWallet = loadLocalWallet();
@@ -52,7 +52,7 @@ export function useTokenBalance(mint: PublicKey | null) {
   });
 }
 
-export function useZTokenBalance(mint: PublicKey | null) {
+export function useZTokenBalance(mint: PublicKey | null | undefined) {
   const { publicKey } = useWallet();
   const localWallet = loadLocalWallet();
   const walletPublicKey = publicKey || (localWallet ? new PublicKey(localWallet.publicKey) : null);
