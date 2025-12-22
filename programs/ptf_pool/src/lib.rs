@@ -124,7 +124,8 @@ pub use instructions::approve_allowance::Allowance;
 pub struct PrepareShield<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
-    /// CHECK: Proof vault PDA
+    /// CHECK: Proof vault PDA - manually validated in instruction
+    /// This account may not exist or may have wrong discriminator - we handle it manually
     #[account(mut)]
     pub proof_vault: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,

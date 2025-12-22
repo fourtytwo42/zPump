@@ -3,7 +3,7 @@
 import { useMemo, ReactNode, useState, useEffect } from "react";
 import { ConnectionProvider, WalletProvider as SolanaWalletProvider } from "@solana/wallet-adapter-react";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
-import { SolflareWalletAdapter } from "@solana/wallet-adapter-wallets";
+import { SolflareWalletAdapter, PhantomWalletAdapter } from "@solana/wallet-adapter-wallets";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { clusterApiUrl } from "@solana/web3.js";
 import { connection } from "@/lib/solana/connection";
@@ -29,13 +29,16 @@ export function WalletProvider({ children }: WalletProviderProps) {
       // Only create wallets after mount to avoid SSR issues
       if (!mounted || typeof window === "undefined") return [];
       
-      // For localnet, we don't need any adapters - we use MetaMaskStyleWallet directly
-      if (process.env.NEXT_PUBLIC_NETWORK === "localnet") {
-        return [];
+      // Add Phantom wallet adapter for both localnet and other networks
+      // Phantom can connect to local testnet when configured
+      const walletAdapters: (PhantomWalletAdapter | SolflareWalletAdapter)[] = [new PhantomWalletAdapter()];
+      
+      // Add Solflare for non-localnet
+      if (process.env.NEXT_PUBLIC_NETWORK !== "localnet") {
+        walletAdapters.push(new SolflareWalletAdapter());
       }
       
-      // Only add Solflare for non-localnet (Phantom is auto-detected as Standard Wallet)
-      return [new SolflareWalletAdapter()];
+      return walletAdapters;
     },
     [mounted]
   );

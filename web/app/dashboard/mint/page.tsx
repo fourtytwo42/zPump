@@ -15,6 +15,7 @@ import { connection } from "@/lib/solana/connection";
 import { Coins, Upload, Image as ImageIcon } from "lucide-react";
 import { PublicKey } from "@solana/web3.js";
 import { useLocalWallet } from "@/hooks/useLocalWallet";
+import { useQueryClient } from "@tanstack/react-query";
 
 const createTokenSchema = z.object({
   name: z.string().min(1, "Name is required").max(32, "Name too long"),
@@ -114,6 +115,21 @@ export default function MintPage() {
       const signature = await connection.sendRawTransaction(transaction.serialize());
       await connection.confirmTransaction(signature, "confirmed");
 
+      // Store metadata URI mapping on server (will be fetched from IPFS node on VM)
+      try {
+        await fetch("/api/token-metadata", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mint: mint.toBase58(),
+            metadataUri: metadataUri,
+          }),
+        });
+      } catch (error) {
+        console.error("Failed to store metadata URI mapping:", error);
+        // Non-critical - metadata can still be fetched if we implement metadata pointer extension
+      }
+
       toast({
         title: "Token Created Successfully!",
         description: `1 billion ${data.symbol} tokens minted to your wallet. Mint: ${mint.toBase58()}`,
@@ -125,9 +141,16 @@ export default function MintPage() {
       setImagePreview(null);
     } catch (error: any) {
       console.error("Token creation error:", error);
+      
+      // Provide helpful error message for IPFS issues
+      let errorMessage = error.message || "Failed to create token";
+      if (errorMessage.includes("IPFS") || errorMessage.includes("project id")) {
+        errorMessage = "IPFS upload failed. Please configure IPFS credentials in environment variables (NEXT_PUBLIC_IPFS_PROJECT_ID and NEXT_PUBLIC_IPFS_PROJECT_SECRET) or use a different IPFS gateway.";
+      }
+      
       toast({
         title: "Error",
-        description: error.message || "Failed to create token",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

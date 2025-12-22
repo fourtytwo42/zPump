@@ -28,9 +28,9 @@ import {
   Coins
 } from "lucide-react";
 import { generateLocalWallet, saveLocalWallet, loadLocalWallet, walletToKeypair, type LocalWallet } from "@/lib/solana/wallet";
-import { useConnection } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, LAMPORTS_PER_SOL, SystemProgram, Transaction } from "@solana/web3.js";
-import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, createTransferInstruction } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, getAssociatedTokenAddress, createTransferInstruction } from "@solana/spl-token";
 import { useQuery } from "@tanstack/react-query";
 import { formatAmount, formatSolBalance } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -58,8 +58,15 @@ export function MetaMaskStyleWallet({ onClose }: MetaMaskStyleWalletProps) {
   const [showSendDialog, setShowSendDialog] = useState(false);
   const [sendType, setSendType] = useState<"ztoken" | "sol" | "token">("sol");
   const [isSending, setIsSending] = useState(false);
+  const [selectedAsset, setSelectedAsset] = useState<"sol" | string | null>("sol");
+  const [showAssetSelector, setShowAssetSelector] = useState(false);
   const { connection } = useConnection();
+  const { publicKey, disconnect, connected, connecting, connect, wallet } = useWallet();
   const { toast } = useToast();
+  
+  // Determine which wallet to use: Phantom if connected, otherwise localStorage wallet
+  const activeWalletAddress = connected && publicKey ? publicKey.toBase58() : (localWallet?.publicKey || null);
+  const isUsingPhantom = connected && publicKey;
 
   const {
     register,
@@ -67,6 +74,7 @@ export function MetaMaskStyleWallet({ onClose }: MetaMaskStyleWalletProps) {
     formState: { errors },
     setValue,
     reset,
+    watch,
   } = useForm<SendFormData>({
     resolver: zodResolver(sendSchema),
     defaultValues: {
@@ -90,13 +98,13 @@ export function MetaMaskStyleWallet({ onClose }: MetaMaskStyleWalletProps) {
   }, []);
 
   const handleSend = async (data: SendFormData) => {
-    if (!localWallet) return;
+    if (!activeWalletAddress) return;
     
     setIsSending(true);
     try {
       const recipient = new PublicKey(data.recipient);
       const amount = parseFloat(data.amount);
-      const keypair = walletToKeypair(localWallet);
+      const fromPubkey = new PublicKey(activeWalletAddress);
       
       // Get current balances for validation
       const currentTokenBalances = tokenBalances || [];
@@ -106,13 +114,21 @@ export function MetaMaskStyleWallet({ onClose }: MetaMaskStyleWalletProps) {
         // Send SOL
         const transaction = new Transaction().add(
           SystemProgram.transfer({
-            fromPubkey: keypair.publicKey,
+            fromPubkey,
             toPubkey: recipient,
             lamports: amount * LAMPORTS_PER_SOL,
           })
         );
 
-        const signature = await connection.sendTransaction(transaction, [keypair]);
+        let signature: string;
+        if (isUsingPhantom && wallet?.adapter) {
+          // Use Phantom wallet adapter to sign and send
+          signature = await wallet.adapter.sendTransaction(transaction, connection);
+        } else {
+          if (!localWallet) return;
+          const keypair = walletToKeypair(localWallet);
+          signature = await connection.sendTransaction(transaction, [keypair]);
+        }
         await connection.confirmTransaction(signature, "confirmed");
 
         toast({
@@ -138,19 +154,27 @@ export function MetaMaskStyleWallet({ onClose }: MetaMaskStyleWalletProps) {
           throw new Error(`Insufficient balance. You have ${formatAmount(tokenInfo.balance, tokenInfo.decimals)} tokens.`);
         }
         
-        const sourceATA = await getAssociatedTokenAddress(mint, keypair.publicKey);
+        const sourceATA = await getAssociatedTokenAddress(mint, fromPubkey);
         const destATA = await getAssociatedTokenAddress(mint, recipient);
 
         const transaction = new Transaction().add(
           createTransferInstruction(
             sourceATA,
             destATA,
-            keypair.publicKey,
+            fromPubkey,
             tokenAmount
           )
         );
 
-        const signature = await connection.sendTransaction(transaction, [keypair]);
+        let signature: string;
+        if (isUsingPhantom && wallet?.adapter) {
+          // Use Phantom wallet adapter to sign and send
+          signature = await wallet.adapter.sendTransaction(transaction, connection);
+        } else {
+          if (!localWallet) return;
+          const keypair = walletToKeypair(localWallet);
+          signature = await connection.sendTransaction(transaction, [keypair]);
+        }
         await connection.confirmTransaction(signature, "confirmed");
 
         toast({
@@ -190,58 +214,94 @@ export function MetaMaskStyleWallet({ onClose }: MetaMaskStyleWalletProps) {
 
   // Fetch SOL balance for local wallet
   const { data: solBalance } = useQuery({
-    queryKey: ["solBalance", localWallet?.publicKey],
+    queryKey: ["solBalance", activeWalletAddress],
     queryFn: async () => {
-      if (!localWallet) return 0;
+      if (!activeWalletAddress) return 0;
       try {
-        const keypair = walletToKeypair(localWallet);
-        const balance = await connection.getBalance(keypair.publicKey);
+        const walletPubkey = new PublicKey(activeWalletAddress);
+        const balance = await connection.getBalance(walletPubkey);
         return balance / LAMPORTS_PER_SOL;
       } catch (error) {
         console.error("Error fetching SOL balance:", error);
         return 0;
       }
     },
-    enabled: !!localWallet,
+    enabled: !!activeWalletAddress,
     refetchInterval: 5000,
   });
   const { data: tokenBalances } = useQuery({
-    queryKey: ["tokenBalances", localWallet?.publicKey],
+    queryKey: ["tokenBalances", activeWalletAddress],
     queryFn: async () => {
-      if (!localWallet) return [];
+      if (!activeWalletAddress) return [];
       try {
-        const keypair = walletToKeypair(localWallet);
-        // Fetch all token accounts owned by this wallet
-        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(keypair.publicKey, {
-          programId: TOKEN_PROGRAM_ID,
-        });
+        const walletPubkey = new PublicKey(activeWalletAddress);
+        // Lazy load metadata fetching function
+        const { fetchTokenMetadata } = await import("@/lib/tokens/fetch-token-metadata");
         
-        return tokenAccounts.value.map((account) => {
-          const parsedInfo = account.account.data.parsed.info;
-          return {
-            mint: parsedInfo.mint,
-            balance: parsedInfo.tokenAmount.amount,
-            decimals: parsedInfo.tokenAmount.decimals,
-            symbol: parsedInfo.mint.slice(0, 4), // Placeholder - would need metadata
-            name: "Token", // Placeholder - would need metadata
-          };
-        });
+        // Fetch all token accounts for both TOKEN_PROGRAM_ID and TOKEN_2022_PROGRAM_ID
+        const [standardTokens, token2022Tokens] = await Promise.all([
+          connection.getParsedTokenAccountsByOwner(walletPubkey, {
+            programId: TOKEN_PROGRAM_ID,
+          }),
+          connection.getParsedTokenAccountsByOwner(walletPubkey, {
+            programId: TOKEN_2022_PROGRAM_ID,
+          }),
+        ]);
+        
+        // Combine both token types
+        const allTokens = [...standardTokens.value, ...token2022Tokens.value];
+        
+        // Process tokens and fetch metadata in parallel
+        const tokenPromises = allTokens
+          .filter((account) => {
+            // Only include tokens with non-zero balance
+            const parsedInfo = account.account.data.parsed.info;
+            return BigInt(parsedInfo.tokenAmount.amount) > BigInt(0);
+          })
+          .map(async (account) => {
+            const parsedInfo = account.account.data.parsed.info;
+            const balance = BigInt(parsedInfo.tokenAmount.amount);
+            const decimals = parsedInfo.tokenAmount.decimals;
+            const displayBalance = Number(balance) / Math.pow(10, decimals);
+            const mint = new PublicKey(parsedInfo.mint);
+            
+            // Fetch metadata for Token-2022 tokens (or any token with stored metadata)
+            let metadata = null;
+            try {
+              metadata = await fetchTokenMetadata(mint, connection);
+            } catch (error) {
+              // Silently fail - use defaults
+              console.debug(`Failed to fetch metadata for ${mint.toBase58()}:`, error);
+            }
+            
+            return {
+              mint: parsedInfo.mint,
+              balance: parsedInfo.tokenAmount.amount,
+              decimals: parsedInfo.tokenAmount.decimals,
+              displayBalance,
+              symbol: metadata?.symbol || parsedInfo.mint.slice(0, 4),
+              name: metadata?.name || "Token",
+              image: metadata?.image,
+            };
+          });
+        
+        return Promise.all(tokenPromises);
       } catch (error) {
         console.error("Error fetching token balances:", error);
         return [];
       }
     },
-    enabled: !!localWallet,
+    enabled: !!activeWalletAddress,
     refetchInterval: 10000,
   });
   const { data: zTokenBalances } = useQuery({
-    queryKey: ["zTokenBalances", localWallet?.publicKey],
+    queryKey: ["zTokenBalances", activeWalletAddress],
     queryFn: async () => {
-      if (!localWallet) return [];
+      if (!activeWalletAddress) return [];
       const indexerUrl = process.env.NEXT_PUBLIC_INDEXER_URL || "/api/indexer";
       try {
         // Use the correct API format: ?address=...&type=balance
-        const response = await fetch(`${indexerUrl}?address=${localWallet.publicKey}&type=balance`);
+        const response = await fetch(`${indexerUrl}?address=${activeWalletAddress}&type=balance`);
         if (response.ok) {
           const data = await response.json();
           // API returns an array or object, normalize to array
@@ -268,36 +328,58 @@ export function MetaMaskStyleWallet({ onClose }: MetaMaskStyleWalletProps) {
       }
       return [];
     },
-    enabled: !!localWallet,
+    enabled: !!activeWalletAddress,
     refetchInterval: 10000,
     retry: false, // Don't retry if indexer is unavailable
   });
 
   const { data: transactions } = useQuery({
-    queryKey: ["walletTransactions", localWallet?.publicKey],
+    queryKey: ["walletTransactions", activeWalletAddress],
     queryFn: async () => {
-      if (!localWallet) return [];
+      if (!activeWalletAddress) return [];
+      const walletPubkey = new PublicKey(activeWalletAddress);
       const indexerUrl = process.env.NEXT_PUBLIC_INDEXER_URL || "/api/indexer";
+      
+      // Try indexer first
       try {
-        // Use the correct API format: ?address=...&type=transactions
-        const response = await fetch(`${indexerUrl}?address=${localWallet.publicKey}&type=transactions`);
+        const response = await fetch(`${indexerUrl}?address=${activeWalletAddress}&type=transactions`);
         if (response.ok) {
           const data = await response.json();
-          return Array.isArray(data) ? data : [];
+          if (Array.isArray(data) && data.length > 0) {
+            return data;
+          }
         }
       } catch (error) {
-        // Silently fail if indexer is not available (expected in development)
-        // Only log in development mode
-        if (process.env.NODE_ENV === "development") {
-          console.debug("Indexer not available, transaction history will be empty");
-        }
+        console.debug("Indexer not available, falling back to RPC");
       }
-      return [];
+      
+      // Fallback to RPC: Get recent signatures for this address
+      try {
+        const signatures = await connection.getSignaturesForAddress(walletPubkey, { limit: 20 });
+        return signatures.map((sig) => ({
+          signature: sig.signature,
+          timestamp: sig.blockTime ? sig.blockTime * 1000 : Date.now(),
+          type: sig.err ? "failed" : "success",
+          slot: sig.slot,
+          amount: sig.err ? "Failed" : "Confirmed",
+        }));
+      } catch (error) {
+        console.error("Error fetching transactions from RPC:", error);
+        return [];
+      }
     },
-    enabled: !!localWallet,
+    enabled: !!activeWalletAddress,
     refetchInterval: 10000,
-    retry: false, // Don't retry if indexer is unavailable
+    retry: false,
   });
+
+  // Auto-select token if only one is available when switching to token tab
+  // This must be after all queries but before any early returns
+  useEffect(() => {
+    if (sendType === "token" && tokenBalances && tokenBalances.length === 1) {
+      setValue("token", tokenBalances[0].mint);
+    }
+  }, [sendType, tokenBalances, setValue]);
 
   if (!mounted) {
     return (
@@ -327,7 +409,7 @@ export function MetaMaskStyleWallet({ onClose }: MetaMaskStyleWalletProps) {
           variant="ghost"
           size="icon"
           className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white border-0 transition-all hover:scale-105"
-          title={`${localWallet.publicKey.slice(0, 6)}...${localWallet.publicKey.slice(-4)}`}
+          title={activeWalletAddress ? `${activeWalletAddress.slice(0, 6)}...${activeWalletAddress.slice(-4)}` : "Wallet"}
         >
           <Wallet className="h-5 w-5" />
         </Button>
@@ -360,62 +442,130 @@ export function MetaMaskStyleWallet({ onClose }: MetaMaskStyleWalletProps) {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Development Wallet Warning */}
-                <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                  <div className="flex items-start gap-2">
-                    <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
-                    <div className="flex-1">
-                      <div className="text-sm font-semibold text-yellow-700 dark:text-yellow-400 mb-1">
-                        Local Development Wallet
-                      </div>
-                      <div className="text-xs text-yellow-600 dark:text-yellow-500">
-                        This is a development wallet stored in your browser. <strong>Do NOT send real SOL or tokens to this address</strong> - they will be lost. This wallet is only for testing on local networks.
-                      </div>
-                    </div>
-                  </div>
+                {/* Phantom Connect/Disconnect Button */}
+                <div className="flex gap-2">
+                  {!connected ? (
+                    <Button
+                      onClick={async () => {
+                        try {
+                          await connect();
+                          toast({
+                            title: "Phantom Connected",
+                            description: "Phantom wallet connected successfully.",
+                          });
+                        } catch (error: any) {
+                          toast({
+                            title: "Connection Failed",
+                            description: error.message || "Failed to connect Phantom wallet.",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                      disabled={connecting}
+                      className="w-full"
+                      variant="outline"
+                    >
+                      {connecting ? "Connecting..." : "Connect Phantom"}
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={async () => {
+                        try {
+                          await disconnect();
+                          toast({
+                            title: "Phantom Disconnected",
+                            description: "Switched back to local wallet.",
+                          });
+                        } catch (error: any) {
+                          toast({
+                            title: "Disconnect Failed",
+                            description: error.message || "Failed to disconnect Phantom wallet.",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                      className="w-full"
+                      variant="outline"
+                    >
+                      Disconnect Phantom
+                    </Button>
+                  )}
                 </div>
 
-                {/* Address Section */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-xs">
-                        {localWallet.publicKey.slice(0, 2).toUpperCase()}
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium">
-                          {localWallet.publicKey.slice(0, 6)}...{localWallet.publicKey.slice(-4)}
+                {/* Wallet Type Indicator */}
+                {isUsingPhantom ? (
+                  <div className="p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <Wallet className="h-5 w-5 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1">
+                        <div className="text-sm font-semibold text-purple-700 dark:text-purple-400 mb-1">
+                          Phantom Wallet Connected
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          {solBalance !== undefined ? `${formatSolBalance(solBalance)} SOL` : "Loading..."}
+                        <div className="text-xs text-purple-600 dark:text-purple-500">
+                          Using Phantom wallet. Disconnect to use local development wallet.
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={copyAddress}
-                        className="h-8 w-8 p-0"
-                        title="Copy Address"
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          const explorerUrl = `https://explorer.solana.com/address/${localWallet.publicKey}?cluster=custom&customUrl=http://127.0.0.1:8899`;
-                          window.open(explorerUrl, "_blank");
-                        }}
-                        className="h-8 w-8 p-0"
-                        title="View on Explorer"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1">
+                        <div className="text-sm font-semibold text-yellow-700 dark:text-yellow-400 mb-1">
+                          Development Wallet
+                        </div>
+                        <div className="text-xs text-yellow-600 dark:text-yellow-500">
+                          <strong>Do NOT send real SOL or tokens</strong> - this is for local testing only.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Address Section */}
+                {activeWalletAddress && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-xs">
+                          {activeWalletAddress.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium">
+                            {activeWalletAddress.slice(0, 6)}...{activeWalletAddress.slice(-4)}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {solBalance !== undefined ? `${formatSolBalance(solBalance)} SOL` : "Loading..."}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={copyAddress}
+                          className="h-8 w-8 p-0"
+                          title="Copy Address"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const explorerUrl = `https://explorer.solana.com/address/${activeWalletAddress}?cluster=custom&customUrl=http://127.0.0.1:8899`;
+                            window.open(explorerUrl, "_blank");
+                          }}
+                          className="h-8 w-8 p-0"
+                          title="View on Explorer"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Tabs for Assets and Activity */}
                 <Tabs defaultValue="assets" className="w-full">
@@ -499,29 +649,40 @@ export function MetaMaskStyleWallet({ onClose }: MetaMaskStyleWalletProps) {
                   <TabsContent value="activity" className="space-y-2 mt-4 max-h-96 overflow-y-auto">
                     {transactions && transactions.length > 0 ? (
                       transactions.map((tx: any, index: number) => (
-                        <div key={index} className="p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                        <div key={tx.signature || index} className="p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               {tx.type === "send" && <Send className="h-5 w-5 text-blue-500" />}
                               {tx.type === "receive" && <ArrowLeftRight className="h-5 w-5 text-green-500 rotate-180" />}
                               {tx.type === "shield" && <ArrowLeftRight className="h-5 w-5 text-purple-500" />}
                               {tx.type === "unshield" && <ArrowLeftRight className="h-5 w-5 text-orange-500" />}
+                              {!tx.type && <History className="h-5 w-5 text-muted-foreground" />}
                               <div>
                                 <div className="font-medium capitalize">{tx.type || "Transaction"}</div>
                                 <div className="text-sm text-muted-foreground">
-                                  {tx.timestamp ? new Date(tx.timestamp).toLocaleString() : "Recent"}
+                                  {tx.timestamp ? new Date(tx.timestamp).toLocaleString() : tx.signature ? `${tx.signature.slice(0, 8)}...${tx.signature.slice(-8)}` : "Recent"}
                                 </div>
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className={`font-semibold ${tx.amount?.startsWith("-") ? "text-red-500" : "text-green-500"}`}>
-                                {tx.amount || "—"}
+                              <div className={`font-semibold ${tx.amount?.startsWith("-") || tx.type === "failed" ? "text-red-500" : "text-green-500"}`}>
+                                {tx.amount || (tx.type === "failed" ? "Failed" : "Confirmed")}
                               </div>
                               <div className="text-xs text-muted-foreground">
-                                {tx.status || "Confirmed"}
+                                {tx.status || (tx.type === "failed" ? "Failed" : "Confirmed")}
                               </div>
                             </div>
                           </div>
+                          {tx.signature && (
+                            <a
+                              href={`https://explorer.solana.com/tx/${tx.signature}?cluster=custom&customUrl=http://127.0.0.1:8899`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary hover:underline mt-2 block"
+                            >
+                              View on Explorer
+                            </a>
+                          )}
                         </div>
                       ))
                     ) : (
@@ -609,9 +770,19 @@ export function MetaMaskStyleWallet({ onClose }: MetaMaskStyleWalletProps) {
         <DialogContent 
           className="sm:max-w-md z-[999999]"
           onPointerDownOutside={(e) => {
-            // Prevent closing when clicking on tabs or other interactive elements
+            // Prevent closing when clicking on tabs, select dropdowns, or other interactive elements
             const target = e.target as HTMLElement;
-            if (target.closest('[role="tab"]') || target.closest('[role="tablist"]') || target.closest('button') || target.closest('input') || target.closest('select')) {
+            if (
+              target.closest('[role="tab"]') || 
+              target.closest('[role="tablist"]') || 
+              target.closest('button') || 
+              target.closest('input') || 
+              target.closest('select') ||
+              target.closest('[role="listbox"]') ||
+              target.closest('[data-radix-select-content]') ||
+              target.closest('[data-radix-select-viewport]') ||
+              target.closest('[data-radix-select-item]')
+            ) {
               e.preventDefault();
             }
           }}
@@ -647,35 +818,74 @@ export function MetaMaskStyleWallet({ onClose }: MetaMaskStyleWalletProps) {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Select Token</label>
                   {tokenBalances && tokenBalances.length > 0 ? (
-                    <SelectComponent
-                      onValueChange={(value) => {
-                        setValue("token", value);
-                      }}
-                    >
-                      <SelectTrigger className="h-12 bg-background/50 backdrop-blur-sm border-2">
-                        <SelectValue placeholder="Select a token to send" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {tokenBalances.map((token: any) => (
-                          <SelectItem key={token.mint} value={token.mint}>
-                            <div className="flex items-center justify-between w-full">
-                              <div className="flex items-center gap-2">
-                                <div className="h-6 w-6 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-bold text-xs">
-                                  {token.symbol?.slice(0, 2) || "T"}
-                                </div>
-                                <div>
-                                  <div className="font-medium">{token.name || "Token"}</div>
-                                  <div className="text-xs text-muted-foreground">{token.symbol || token.mint.slice(0, 8)}...</div>
-                                </div>
+                    <>
+                      {tokenBalances.length === 1 ? (
+                        // If only one token, show it directly
+                        <div className="p-3 border rounded-lg bg-muted/50">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-bold text-xs">
+                                {tokenBalances[0].symbol?.slice(0, 2) || "T"}
                               </div>
-                              <div className="text-right ml-4">
-                                <div className="font-semibold">{formatAmount(token.balance, token.decimals)}</div>
+                              <div>
+                                <div className="font-medium">{tokenBalances[0].name || "Token"}</div>
+                                <div className="text-xs text-muted-foreground">{tokenBalances[0].symbol || tokenBalances[0].mint.slice(0, 8)}...</div>
                               </div>
                             </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </SelectComponent>
+                            <div className="text-right">
+                              <div className="font-semibold">{formatAmount(tokenBalances[0].balance, tokenBalances[0].decimals)}</div>
+                              <div className="text-xs text-muted-foreground">Available</div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        // Multiple tokens - show dropdown
+                        <SelectComponent
+                          value={watch("token") || ""}
+                          onValueChange={(value) => {
+                            setValue("token", value);
+                          }}
+                        >
+                          <SelectTrigger 
+                            className="h-12 bg-background/50 backdrop-blur-sm border-2"
+                            onClick={(e) => e.stopPropagation()}
+                            onPointerDown={(e) => e.stopPropagation()}
+                          >
+                            <SelectValue placeholder="Select a token to send" />
+                          </SelectTrigger>
+                          <SelectContent 
+                            className="max-h-[300px] z-[999999]"
+                            onClick={(e) => e.stopPropagation()}
+                            onPointerDown={(e) => e.stopPropagation()}
+                          >
+                            {tokenBalances.map((token: any) => (
+                              <SelectItem 
+                                key={token.mint} 
+                                value={token.mint}
+                                onClick={(e) => e.stopPropagation()}
+                                onPointerDown={(e) => e.stopPropagation()}
+                              >
+                                <div className="flex items-center justify-between w-full">
+                                  <div className="flex items-center gap-2">
+                                    <div className="h-6 w-6 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-bold text-xs">
+                                      {token.symbol?.slice(0, 2) || "T"}
+                                    </div>
+                                    <div>
+                                      <div className="font-medium">{token.name || "Token"}</div>
+                                      <div className="text-xs text-muted-foreground">{token.symbol || token.mint.slice(0, 8)}...</div>
+                                    </div>
+                                  </div>
+                                  <div className="text-right ml-4">
+                                    <div className="font-semibold">{formatAmount(token.balance, token.decimals)}</div>
+                                    <div className="text-xs text-muted-foreground">Available</div>
+                                  </div>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </SelectComponent>
+                      )}
+                    </>
                   ) : (
                     <div className="p-4 border rounded-lg text-center text-sm text-muted-foreground">
                       No tokens found. Mint some tokens first.

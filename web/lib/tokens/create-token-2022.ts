@@ -8,6 +8,11 @@ import {
   getAssociatedTokenAddress,
   createAssociatedTokenAccountInstruction,
   getMinimumBalanceForRentExemptMint,
+  ExtensionType,
+  getMintLen as getMintLenWithExtensions,
+  createInitializeMetadataPointerInstruction,
+  createUpdateMetadataPointerInstruction,
+  getMetadataPointerState,
 } from "@solana/spl-token";
 // Lazy load IPFS functions to avoid blocking initial bundle
 async function getIpfsFunctions() {
@@ -61,6 +66,10 @@ export async function createToken2022WithMetadata(
   const metadataUri = ipfs.getIpfsUrl(metadataCid);
 
   // Step 4: Calculate rent for mint account
+  // Note: For now, we're not using the metadata pointer extension to avoid
+  // transaction signing issues with PDA accounts. We'll use server-side storage instead.
+  // TODO: Implement proper Token-2022 metadata pointer extension once we understand
+  // the correct way to create and initialize the metadata account PDA.
   const mintRent = await getMinimumBalanceForRentExemptMint(connection);
 
   // Step 5: Create transaction
@@ -88,7 +97,7 @@ export async function createToken2022WithMetadata(
     )
   );
 
-  // Step 6: Mint 1 billion tokens to payer
+  // Step 8: Mint 1 billion tokens to payer
   const payerATA = await getAssociatedTokenAddress(
     mintPublicKey,
     payer.publicKey,
